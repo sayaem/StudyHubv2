@@ -1,5 +1,8 @@
 package com.example.ui.screens
 
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -30,21 +34,21 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.SettingsBrightness
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -59,20 +63,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.UserProfile
+import com.example.ui.components.StudentAvatarBadge
 import com.example.ui.components.StudyHubCard
-import com.example.ui.theme.StudyAccentSky
-import com.example.ui.theme.StudyBackground
-import com.example.ui.theme.StudyBorder
-import com.example.ui.theme.StudyNavyPrimary
-import com.example.ui.theme.StudyPrimaryText
-import com.example.ui.theme.StudySecondaryText
+import com.example.ui.theme.StudySuccess
 import com.example.ui.theme.StudyTealAction
-import com.example.ui.theme.StudyTealLight
+import com.example.util.StudyHubNotificationManager
 
 @Composable
 fun ProfileScreen(
@@ -86,13 +87,14 @@ fun ProfileScreen(
     var showAchievementsDialog by remember { mutableStateOf(false) }
     var showHelpDialog by remember { mutableStateOf(false) }
 
-    val totalHours = (profile?.totalStudyMinutes ?: 7245) / 60
-    val totalMinutes = (profile?.totalStudyMinutes ?: 7245) % 60
+    val totalHours = (profile?.totalStudyMinutes ?: 0) / 60
+    val totalMinutes = (profile?.totalStudyMinutes ?: 0) % 60
+    val streak = profile?.streakDays ?: 0
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground),
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(18.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -102,47 +104,38 @@ fun ProfileScreen(
                 text = "Profile",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
-                    color = StudyNavyPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
 
-        // Profile Info Card (matching mockup!)
+        // Profile Info Card
         item {
             StudyHubCard(contentPadding = PaddingValues(20.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(
-                        modifier = Modifier.size(64.dp),
-                        shape = CircleShape,
-                        color = Color(0xFF4338CA)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = profile?.displayName?.split(" ")?.mapNotNull { it.firstOrNull()?.toString() }?.take(2)?.joinToString("") ?: "SA",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 22.sp
-                            )
-                        }
-                    }
+                    StudentAvatarBadge(
+                        avatarId = profile?.avatarId ?: 1,
+                        name = profile?.displayName?.ifBlank { "SH" } ?: "SH",
+                        size = 64.dp
+                    )
 
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = profile?.displayName ?: "Sayem Arafat",
+                            text = profile?.displayName?.ifBlank { "Student" } ?: "Student",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = StudyNavyPrimary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "${profile?.level ?: "Class 12"} • ${profile?.groupName ?: "Science"} • ${profile?.board ?: "Dhaka"}",
-                            style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                            text = "${profile?.level ?: "HSC"} • ${if (profile?.level == "Admission") profile.admissionCategory else profile?.groupName ?: "Science"}",
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                     }
 
@@ -155,17 +148,17 @@ fun ProfileScreen(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = null,
-                            tint = StudyTealAction,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Edit", color = StudyTealAction, fontSize = 12.sp)
+                        Text("Edit", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                     }
                 }
             }
         }
 
-        // Stats: Streak & Total Study Time (matching mockup!)
+        // Real Stats: Streak & Total Study Time
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -192,13 +185,13 @@ fun ProfileScreen(
                         Column {
                             Text(
                                 text = "Study Streak",
-                                style = MaterialTheme.typography.labelSmall.copy(color = StudySecondaryText)
+                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                             Text(
-                                text = "${profile?.streakDays ?: 7} days",
+                                text = "$streak days",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = StudyNavyPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -210,14 +203,14 @@ fun ProfileScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Surface(
                             shape = CircleShape,
-                            color = StudyAccentSky,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                             modifier = Modifier.size(40.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Default.Schedule,
                                     contentDescription = null,
-                                    tint = StudyTealAction,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
@@ -225,14 +218,14 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
-                                text = "Total Study Time",
-                                style = MaterialTheme.typography.labelSmall.copy(color = StudySecondaryText)
+                                text = "Total Logged",
+                                style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                             Text(
                                 text = "${totalHours}h ${totalMinutes}m",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = StudyNavyPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -241,7 +234,7 @@ fun ProfileScreen(
             }
         }
 
-        // Profile Menu Links matching mockup
+        // Profile Menu Links
         item {
             StudyHubCard(contentPadding = PaddingValues(0.dp)) {
                 Column {
@@ -250,19 +243,19 @@ fun ProfileScreen(
                         label = "My Goals",
                         onClick = { showGoalsDialog = true }
                     )
-                    HorizontalDivider(thickness = 0.8.dp, color = StudyBorder)
+                    HorizontalDivider(thickness = 0.8.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     ProfileMenuItem(
                         icon = Icons.Default.EmojiEvents,
-                        label = "Achievements",
+                        label = "Achievements & Badges",
                         onClick = { showAchievementsDialog = true }
                     )
-                    HorizontalDivider(thickness = 0.8.dp, color = StudyBorder)
+                    HorizontalDivider(thickness = 0.8.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     ProfileMenuItem(
                         icon = Icons.Default.HelpOutline,
                         label = "Help & Support",
                         onClick = { showHelpDialog = true }
                     )
-                    HorizontalDivider(thickness = 0.8.dp, color = StudyBorder)
+                    HorizontalDivider(thickness = 0.8.dp, color = MaterialTheme.colorScheme.outlineVariant)
                     ProfileMenuItem(
                         icon = Icons.Default.Info,
                         label = "Settings",
@@ -284,15 +277,15 @@ fun ProfileScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("• Target Exam: ${profile?.targetExamName ?: "HSC 2026"}")
-                    Text("• Daily Study Target: ${(profile?.dailyGoalMinutes ?: 300) / 60} hours")
-                    Text("• Target Board: ${profile?.board ?: "Dhaka"}")
-                    Text("• Stream: ${profile?.groupName ?: "Science"}")
+                    Text("• Daily Study Target: ${(profile?.dailyGoalMinutes ?: 180) / 60} hours")
+                    Text("• Target Pathway: ${profile?.level ?: "HSC"}")
+                    Text("• Main Goal: ${profile?.mainGoal ?: "Exam Preparation"}")
                 }
             },
             confirmButton = {
                 Button(
                     onClick = { showGoalsDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("OK")
                 }
@@ -306,18 +299,19 @@ fun ProfileScreen(
             title = { Text("Achievements 🏆") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("🔥 7-Day Consistency Streak (Unlocked)")
-                    Text("⏱️ 100+ Hours Study Club (Unlocked)")
-                    Text("📚 Syllabus Pioneer - 3 Chapters Complete (Unlocked)")
-                    Text("⚡ Quick Revise Master (In Progress)")
+                    val streakAchieved = (profile?.streakDays ?: 0) >= 3
+                    val hoursAchieved = (profile?.totalStudyMinutes ?: 0) >= 600
+                    Text(if (streakAchieved) "🔥 3-Day Consistency Streak (Unlocked!)" else "🔒 3-Day Consistency Streak (In progress)")
+                    Text(if (hoursAchieved) "⏱️ 10+ Hours Study Club (Unlocked!)" else "🔒 10+ Hours Study Club (In progress)")
+                    Text("📚 Syllabus Explorer (Complete chapter topics to unlock)")
                 }
             },
             confirmButton = {
                 Button(
                     onClick = { showAchievementsDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Awesome")
+                    Text("Close")
                 }
             }
         )
@@ -329,19 +323,306 @@ fun ProfileScreen(
             title = { Text("StudyHub Support") },
             text = {
                 Text(
-                    "StudyHub is designed specifically for Bangladeshi students preparing for SSC, HSC, and University Admissions.\n\n" +
-                            "For feedback or syllabus updates, reach out to the StudyHub team:\nsupport@studyhub.bd"
+                    "StudyHub is designed for students in Bangladesh preparing for SSC, HSC, and University Admissions.\n\n" +
+                            "Feedback or questions?\nEmail: support@studyhub.bd"
                 )
             },
             confirmButton = {
                 Button(
                     onClick = { showHelpDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text("Got it")
+                    Text("Understood")
                 }
             }
         )
+    }
+}
+
+@Composable
+fun SettingsScreen(
+    profile: UserProfile?,
+    onSetThemeMode: (String) -> Unit,
+    onTestNotification: () -> Unit,
+    onResetOnboarding: () -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var hasPermission by remember {
+        mutableStateOf(StudyHubNotificationManager.hasNotificationPermission(context))
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasPermission = granted
+        if (granted) onTestNotification()
+    }
+
+    var showResetDialog by remember { mutableStateOf(false) }
+    val currentTheme = profile?.themeMode ?: "SYSTEM"
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+    ) {
+        // App Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.testTag("settings_back_button")
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Settings",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(18.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // REAL Dark Mode / Light Mode / System Selector
+            item {
+                StudyHubCard(contentPadding = PaddingValues(16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = "Theme & Appearance",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            ThemeOptionButton(
+                                title = "System",
+                                icon = Icons.Default.SettingsBrightness,
+                                isSelected = currentTheme.equals("SYSTEM", ignoreCase = true),
+                                onClick = { onSetThemeMode("SYSTEM") },
+                                modifier = Modifier.weight(1f)
+                            )
+                            ThemeOptionButton(
+                                title = "Light",
+                                icon = Icons.Default.LightMode,
+                                isSelected = currentTheme.equals("LIGHT", ignoreCase = true),
+                                onClick = { onSetThemeMode("LIGHT") },
+                                modifier = Modifier.weight(1f)
+                            )
+                            ThemeOptionButton(
+                                title = "Dark",
+                                icon = Icons.Default.DarkMode,
+                                isSelected = currentTheme.equals("DARK", ignoreCase = true),
+                                onClick = { onSetThemeMode("DARK") },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Real Android Notifications Section
+            item {
+                StudyHubCard(contentPadding = PaddingValues(16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = "Notifications & Alerts",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (hasPermission) "Notification Permission Granted" else "Notification Permission Needed",
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                                Text(
+                                    text = "Required for daily study alarms and task alerts",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                )
+                            }
+                            if (!hasPermission) {
+                                Button(
+                                    onClick = {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                                        } else {
+                                            hasPermission = true
+                                            onTestNotification()
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text("Enable", fontSize = 12.sp)
+                                }
+                            }
+                        }
+
+                        // Send Test Notification action
+                        OutlinedButton(
+                            onClick = {
+                                if (hasPermission) {
+                                    onTestNotification()
+                                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                                } else {
+                                    onTestNotification()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(imageVector = Icons.Default.NotificationsActive, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Send Test Reminder Notification")
+                        }
+                    }
+                }
+            }
+
+            // Onboarding Re-run & Storage
+            item {
+                StudyHubCard(contentPadding = PaddingValues(16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Profile & Setup Wizard",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                        Text(
+                            text = "Want to change your academic pathway or setup options?",
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )
+                        OutlinedButton(
+                            onClick = { showResetDialog = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Rerun Academic Setup Wizard")
+                        }
+                    }
+                }
+            }
+
+            // About & Version info
+            item {
+                StudyHubCard(contentPadding = PaddingValues(16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = "About StudyHub 2.0",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                        Text(
+                            text = "StudyHub v2.0.0 • Modern Academic Management",
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )
+                        Text(
+                            text = "Crafted for students of Bangladesh preparing for SSC, HSC, and University Admissions.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        )
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(40.dp))
+            }
+        }
+    }
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetDialog = false },
+            title = { Text("Rerun Onboarding?") },
+            text = { Text("This will launch the setup wizard so you can adjust your academic pathway, goals, and subjects.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onResetOnboarding()
+                        showResetDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Restart Setup")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun ThemeOptionButton(
+    title: String,
+    icon: ImageVector,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+    ) {
+        Row(
+            modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = title,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                fontSize = 13.sp
+            )
+        }
     }
 }
 
@@ -361,7 +642,7 @@ private fun ProfileMenuItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = StudyNavyPrimary,
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(22.dp)
         )
         Spacer(modifier = Modifier.width(14.dp))
@@ -369,255 +650,15 @@ private fun ProfileMenuItem(
             text = label,
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Medium,
-                color = StudyPrimaryText
+                color = MaterialTheme.colorScheme.onSurface
             ),
             modifier = Modifier.weight(1f)
         )
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
-            tint = StudySecondaryText,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)
-        )
-    }
-}
-
-@Composable
-fun SettingsScreen(
-    profile: UserProfile?,
-    onBack: () -> Unit,
-    onResetData: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var soundEnabled by remember { mutableStateOf(true) }
-    var showResetDialog by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(StudyBackground)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-    ) {
-        // App Bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier.testTag("settings_back_button")
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = StudyNavyPrimary
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Settings",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = StudyNavyPrimary
-                )
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(18.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Appearance Section matching mockup (Light active)
-            item {
-                StudyHubCard(contentPadding = PaddingValues(16.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            text = "Appearance",
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = StudyNavyPrimary
-                            )
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = StudyTealAction,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(vertical = 10.dp),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.LightMode,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Light", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                }
-                            }
-
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = Color(0xFFF1F5F9),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(vertical = 10.dp),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.DarkMode,
-                                        contentDescription = null,
-                                        tint = StudySecondaryText,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Dark", color = StudySecondaryText, fontSize = 13.sp)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Notifications Section
-            item {
-                StudyHubCard(contentPadding = PaddingValues(16.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(
-                            text = "Notifications",
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = StudyNavyPrimary
-                            )
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(text = "Study Reminders", style = MaterialTheme.typography.bodyMedium)
-                                Text(
-                                    text = "Alerts for scheduled tasks & exams",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
-                                )
-                            }
-                            Switch(
-                                checked = notificationsEnabled,
-                                onCheckedChange = { notificationsEnabled = it },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = StudyTealAction
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Data & Local Persistence Section
-            item {
-                StudyHubCard(contentPadding = PaddingValues(16.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            text = "Data & Storage",
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = StudyNavyPrimary
-                            )
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Storage,
-                                contentDescription = null,
-                                tint = StudyTealAction,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Local Room SQLite Database: Active & Synced",
-                                style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
-                            )
-                        }
-                        Text(
-                            text = "All your study tasks, notes, sessions, and syllabus progress are preserved on-device even when offline.",
-                            style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        OutlinedButton(
-                            onClick = { showResetDialog = true },
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFD14343))
-                        ) {
-                            Text("Reset Sample Data & Profile")
-                        }
-                    }
-                }
-            }
-
-            // About & Version info
-            item {
-                StudyHubCard(contentPadding = PaddingValues(16.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            text = "About StudyHub",
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = StudyNavyPrimary
-                            )
-                        )
-                        Text(
-                            text = "StudyHub v1.0.0 (Release Build 2026)",
-                            style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
-                        )
-                        Text(
-                            text = "Dedicated study management app for SSC, HSC, and University Admission candidates in Bangladesh.",
-                            style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
-                        )
-                    }
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(40.dp))
-            }
-        }
-    }
-
-    if (showResetDialog) {
-        AlertDialog(
-            onDismissRequest = { showResetDialog = false },
-            title = { Text("Reset Study Data?") },
-            text = { Text("This will restore default demo seed data and profile.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onResetData()
-                        showResetDialog = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD14343))
-                ) {
-                    Text("Reset")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showResetDialog = false }) {
-                    Text("Cancel")
-                }
-            }
         )
     }
 }

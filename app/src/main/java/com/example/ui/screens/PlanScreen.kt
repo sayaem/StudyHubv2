@@ -23,20 +23,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.EventNote
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,16 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.StudyTaskEntity
 import com.example.ui.components.EmptyStateView
-import com.example.ui.components.StudyHubCard
 import com.example.ui.components.TaskCardItem
-import com.example.ui.theme.StudyAccentSky
-import com.example.ui.theme.StudyBackground
-import com.example.ui.theme.StudyBorder
-import com.example.ui.theme.StudyNavyPrimary
-import com.example.ui.theme.StudyPrimaryText
-import com.example.ui.theme.StudySecondaryText
-import com.example.ui.theme.StudyTealAction
-import com.example.ui.theme.StudyTealLight
+import com.example.ui.theme.StudySuccess
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -85,12 +72,11 @@ fun PlanScreen(
     var selectedTaskForDetails by remember { mutableStateOf<StudyTaskEntity?>(null) }
     var taskToDelete by remember { mutableStateOf<StudyTaskEntity?>(null) }
 
-    // Calendar & Date formatting
     val dateFormatter = remember { SimpleDateFormat("EEEE, dd MMM yyyy", Locale.getDefault()) }
     val dayNumberFormatter = remember { SimpleDateFormat("dd", Locale.getDefault()) }
     val dayNameFormatter = remember { SimpleDateFormat("EEE", Locale.getDefault()) }
 
-    // Generate week days around selected date
+    // Week days around selected date
     val weekDays = remember(selectedDate) {
         val cal = Calendar.getInstance().apply {
             timeInMillis = selectedDate
@@ -119,13 +105,17 @@ fun PlanScreen(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize().background(StudyBackground)) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Header / Date navigator (matching mockup!)
+            // Header / Date navigator
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -134,14 +124,14 @@ fun PlanScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Today's Schedule",
-                            style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                            text = "Daily Schedule",
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Text(
                             text = dateFormatter.format(Date(selectedDate)),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = StudyNavyPrimary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         )
                     }
@@ -154,7 +144,7 @@ fun PlanScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                                 contentDescription = "Previous Day",
-                                tint = StudyNavyPrimary
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         IconButton(
@@ -164,14 +154,14 @@ fun PlanScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                 contentDescription = "Next Day",
-                                tint = StudyNavyPrimary
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
                 }
             }
 
-            // Week Strip Horizontal Scroll (matching mockup!)
+            // Week Strip Horizontal Scroll
             item {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -186,7 +176,7 @@ fun PlanScreen(
                                 .width(52.dp)
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(
-                                    if (isSelected) StudyTealAction else Color.White
+                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
                                 )
                                 .clickable { onSelectDate(dayMillis) }
                                 .padding(vertical = 12.dp)
@@ -196,7 +186,7 @@ fun PlanScreen(
                             Text(
                                 text = dayNameFormatter.format(Date(dayMillis)),
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    color = if (isSelected) Color.White.copy(alpha = 0.9f) else StudySecondaryText,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 11.sp
                                 )
                             )
@@ -205,7 +195,7 @@ fun PlanScreen(
                                 text = dayNumberFormatter.format(Date(dayMillis)),
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = if (isSelected) Color.White else StudyNavyPrimary,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
                                     fontSize = 16.sp
                                 )
                             )
@@ -215,7 +205,7 @@ fun PlanScreen(
                                     modifier = Modifier
                                         .size(4.dp)
                                         .background(
-                                            if (isSelected) Color.White else StudyTealAction,
+                                            if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
                                             CircleShape
                                         )
                                 )
@@ -238,15 +228,15 @@ fun PlanScreen(
                             onClick = { taskFilter = filter },
                             label = { Text(filter) },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = StudyTealLight,
-                                selectedLabelColor = StudyTealAction,
-                                containerColor = Color.White,
-                                labelColor = StudySecondaryText
+                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+                                selectedLabelColor = MaterialTheme.colorScheme.primary,
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
                             border = FilterChipDefaults.filterChipBorder(
                                 enabled = true,
                                 selected = selected,
-                                borderColor = if (selected) StudyTealAction else StudyBorder
+                                borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                             )
                         )
                     }
@@ -264,15 +254,15 @@ fun PlanScreen(
                         text = "Tasks (${filteredTasks.size})",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = StudyNavyPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
 
                     Button(
                         onClick = onAddTask,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = StudyTealAction,
-                            contentColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         shape = RoundedCornerShape(10.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
@@ -280,13 +270,9 @@ fun PlanScreen(
                             .height(36.dp)
                             .testTag("plan_add_task_inline_button")
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "Add Task", fontSize = 12.sp)
+                        Text(text = "Add Task", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -296,9 +282,9 @@ fun PlanScreen(
                 item {
                     EmptyStateView(
                         icon = Icons.Outlined.EventNote,
-                        title = "No tasks found",
-                        subtitle = "No tasks match your selected date and filter.",
-                        ctaText = "+ Add Study Task",
+                        title = "No tasks for this filter",
+                        subtitle = "Add your study task for this day to keep your progress steady.",
+                        ctaText = "+ Add Task",
                         onCtaClick = onAddTask
                     )
                 }
@@ -327,7 +313,7 @@ fun PlanScreen(
                     text = task.title,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             },
@@ -355,7 +341,7 @@ fun PlanScreen(
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Notes: ${task.notes}",
-                            style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                     }
                 }
@@ -368,7 +354,7 @@ fun PlanScreen(
                             selectedTaskForDetails = null
                         }
                     ) {
-                        Text("Delete", color = Color(0xFFD14343))
+                        Text("Delete", color = MaterialTheme.colorScheme.error)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
@@ -377,7 +363,7 @@ fun PlanScreen(
                             selectedTaskForDetails = null
                             onEditTask(target)
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text("Edit")
                     }
@@ -403,7 +389,7 @@ fun PlanScreen(
                         onDeleteTask(task.id)
                         taskToDelete = null
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD14343))
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
                     Text("Delete")
                 }

@@ -25,12 +25,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -58,20 +55,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.data.model.AcademicLevel
 import com.example.data.model.EducationBoard
-import com.example.data.model.StudyStream
 import com.example.ui.components.PrimaryButton
-import com.example.ui.theme.StudyAccentSky
-import com.example.ui.theme.StudyBackground
-import com.example.ui.theme.StudyBorder
-import com.example.ui.theme.StudyNavyPrimary
-import com.example.ui.theme.StudyPrimaryText
-import com.example.ui.theme.StudySecondaryText
-import com.example.ui.theme.StudySuccess
-import com.example.ui.theme.StudyTealAction
-import com.example.ui.theme.StudyTealLight
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -88,7 +73,7 @@ fun LevelSelectionScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(24.dp)
@@ -101,7 +86,7 @@ fun LevelSelectionScreen(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint = StudyNavyPrimary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -111,7 +96,7 @@ fun LevelSelectionScreen(
             text = "Select Your Level",
             style = MaterialTheme.typography.headlineSmall.copy(
                 fontWeight = FontWeight.Bold,
-                color = StudyNavyPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
         )
 
@@ -119,12 +104,12 @@ fun LevelSelectionScreen(
 
         Text(
             text = "Choose your current academic level to get a personalized experience.",
-            style = MaterialTheme.typography.bodyMedium.copy(color = StudySecondaryText)
+            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
         )
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Level Cards matching mockup
+        // Level Cards
         LevelCard(
             levelCode = "SSC",
             classLabel = "Class 9-10",
@@ -183,11 +168,11 @@ private fun LevelCard(
             .testTag("level_card_$levelCode"),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Color(0xFFF2FBFA) else Color.White
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
         ),
         border = androidx.compose.foundation.BorderStroke(
             width = if (isSelected) 2.dp else 1.dp,
-            color = if (isSelected) StudyTealAction else StudyBorder
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
         )
     ) {
         Row(
@@ -198,7 +183,7 @@ private fun LevelCard(
         ) {
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = iconTint.copy(alpha = 0.12f),
+                color = iconTint.copy(alpha = 0.15f),
                 modifier = Modifier.size(50.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -218,13 +203,13 @@ private fun LevelCard(
                     text = levelCode,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = classLabel,
-                    style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                 )
             }
 
@@ -235,17 +220,17 @@ private fun LevelCard(
                     .clip(CircleShape)
                     .border(
                         width = 2.dp,
-                        color = if (isSelected) StudyTealAction else StudyBorder,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                         shape = CircleShape
                     )
-                    .background(if (isSelected) StudyTealAction else Color.Transparent),
+                    .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent),
                 contentAlignment = Alignment.Center
             ) {
                 if (isSelected) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Selected",
-                        tint = Color.White,
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -269,7 +254,6 @@ fun ProfileSetupScreen(
     var selectedGroup by remember { mutableStateOf("Science") }
     var groupExpanded by remember { mutableStateOf(false) }
 
-    // Target Exam Date (defaults to approx 8 months from now)
     val examCalendar = remember {
         Calendar.getInstance().apply {
             add(Calendar.DAY_OF_YEAR, 238)
@@ -281,7 +265,7 @@ fun ProfileSetupScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(24.dp)
@@ -294,7 +278,7 @@ fun ProfileSetupScreen(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint = StudyNavyPrimary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -308,13 +292,13 @@ fun ProfileSetupScreen(
             Surface(
                 modifier = Modifier.size(72.dp),
                 shape = CircleShape,
-                color = StudyAccentSky
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Avatar",
-                        tint = StudyTealAction,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(40.dp)
                     )
                 }
@@ -327,7 +311,7 @@ fun ProfileSetupScreen(
             text = "Complete Your Profile",
             style = MaterialTheme.typography.headlineSmall.copy(
                 fontWeight = FontWeight.Bold,
-                color = StudyNavyPrimary
+                color = MaterialTheme.colorScheme.onSurface
             ),
             modifier = Modifier.fillMaxWidth(),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -337,7 +321,7 @@ fun ProfileSetupScreen(
 
         Text(
             text = "Help us personalize your study plan.",
-            style = MaterialTheme.typography.bodyMedium.copy(color = StudySecondaryText),
+            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
             modifier = Modifier.fillMaxWidth(),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
@@ -353,7 +337,7 @@ fun ProfileSetupScreen(
                 Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = null,
-                    tint = StudyTealAction
+                    tint = MaterialTheme.colorScheme.primary
                 )
             },
             modifier = Modifier
@@ -361,10 +345,10 @@ fun ProfileSetupScreen(
                 .testTag("profile_name_input"),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = StudyTealAction,
-                unfocusedBorderColor = StudyBorder,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             ),
             singleLine = true
         )
@@ -387,7 +371,7 @@ fun ProfileSetupScreen(
                     Icon(
                         imageVector = Icons.Default.School,
                         contentDescription = null,
-                        tint = StudyTealAction
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 },
                 modifier = Modifier
@@ -396,10 +380,10 @@ fun ProfileSetupScreen(
                     .testTag("profile_board_dropdown"),
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = StudyTealAction,
-                    unfocusedBorderColor = StudyBorder,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
                 )
             )
             ExposedDropdownMenu(
@@ -436,7 +420,7 @@ fun ProfileSetupScreen(
                     Icon(
                         imageVector = Icons.Default.MenuBook,
                         contentDescription = null,
-                        tint = StudyTealAction
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 },
                 modifier = Modifier
@@ -445,10 +429,10 @@ fun ProfileSetupScreen(
                     .testTag("profile_group_dropdown"),
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = StudyTealAction,
-                    unfocusedBorderColor = StudyBorder,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
                 )
             )
             ExposedDropdownMenu(
@@ -479,7 +463,7 @@ fun ProfileSetupScreen(
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
                     contentDescription = null,
-                    tint = StudyTealAction
+                    tint = MaterialTheme.colorScheme.primary
                 )
             },
             modifier = Modifier
@@ -487,10 +471,10 @@ fun ProfileSetupScreen(
                 .testTag("profile_exam_date_field"),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = StudyTealAction,
-                unfocusedBorderColor = StudyBorder,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             )
         )
 

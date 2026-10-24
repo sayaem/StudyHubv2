@@ -20,7 +20,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -41,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.ChapterEntity
@@ -49,15 +52,9 @@ import com.example.data.model.StudySessionEntity
 import com.example.data.model.StudyTaskEntity
 import com.example.data.model.SubjectEntity
 import com.example.ui.components.CircularProgressGauge
+import com.example.ui.components.EmptyStateView
 import com.example.ui.components.StudyHubCard
-import com.example.ui.theme.StudyAccentSky
-import com.example.ui.theme.StudyBackground
-import com.example.ui.theme.StudyBorder
-import com.example.ui.theme.StudyNavyPrimary
-import com.example.ui.theme.StudyPrimaryText
-import com.example.ui.theme.StudySecondaryText
 import com.example.ui.theme.StudySuccess
-import com.example.ui.theme.StudyTealAction
 
 @Composable
 fun PerformanceAnalyticsScreen(
@@ -70,26 +67,25 @@ fun PerformanceAnalyticsScreen(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Overview, 1: Subjects, 2: Tests
 
-    // Real analytics math based on database records
+    // Real analytics calculated exclusively from user data
     val totalTasks = tasks.size
     val completedTasks = tasks.count { it.isCompleted }
-    val taskCompletionRate = if (totalTasks > 0) (completedTasks * 100) / totalTasks else 80
+    val taskCompletionRate = if (totalTasks > 0) (completedTasks * 100) / totalTasks else 0
 
     val totalStudySeconds = sessions.sumOf { it.focusSeconds }
     val studyHours = totalStudySeconds / 3600
     val studyMinutes = (totalStudySeconds % 3600) / 60
 
-    // Syllabus progress overall
     val totalChapters = chapters.size
     val completedChapters = chapters.count { it.status == ChapterStatus.COMPLETED }
-    val syllabusRate = if (totalChapters > 0) (completedChapters * 100) / totalChapters else 60
+    val syllabusRate = if (totalChapters > 0) (completedChapters * 100) / totalChapters else 0
 
-    val overallScore = ((taskCompletionRate * 0.5f) + (syllabusRate * 0.5f)).toInt().coerceIn(0, 100)
+    val overallScore = if (totalTasks == 0 && totalChapters == 0) 0 else ((taskCompletionRate * 0.5f) + (syllabusRate * 0.5f)).toInt().coerceIn(0, 100)
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -107,7 +103,7 @@ fun PerformanceAnalyticsScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = StudyNavyPrimary
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -115,21 +111,21 @@ fun PerformanceAnalyticsScreen(
                 text = "Performance Analytics",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    color = StudyNavyPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
 
-        // Tabs: Overview, Subjects, Tests (matching mockup!)
+        // Tabs: Overview, Subjects, Tests
         TabRow(
             selectedTabIndex = selectedTab,
             containerColor = Color.Transparent,
-            contentColor = StudyTealAction,
+            contentColor = MaterialTheme.colorScheme.primary,
             divider = {},
             indicator = { tabPositions ->
                 TabRowDefaults.SecondaryIndicator(
                     Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                    color = StudyTealAction
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         ) {
@@ -156,7 +152,7 @@ fun PerformanceAnalyticsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (selectedTab == 0) {
-                // Large Overall Performance Gauge (matching mockup: 78%)
+                // Large Overall Performance Gauge
                 item {
                     StudyHubCard(contentPadding = PaddingValues(24.dp)) {
                         Column(
@@ -164,9 +160,9 @@ fun PerformanceAnalyticsScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Overall Performance",
+                                text = "Overall Consistency Score",
                                 style = MaterialTheme.typography.titleMedium.copy(
-                                    color = StudySecondaryText,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.Medium
                                 )
                             )
@@ -175,22 +171,23 @@ fun PerformanceAnalyticsScreen(
                                 progress = overallScore / 100f,
                                 modifier = Modifier.size(160.dp),
                                 strokeWidth = 14.dp,
-                                progressColor = StudyTealAction,
-                                trackColor = StudyAccentSky
+                                progressColor = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 Text(
                                     text = "$overallScore%",
                                     style = MaterialTheme.typography.headlineLarge.copy(
                                         fontSize = 38.sp,
                                         fontWeight = FontWeight.ExtraBold,
-                                        color = StudyNavyPrimary
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 )
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Based on task completion and chapter mastery",
-                                style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                                text = if (totalTasks == 0 && sessions.isEmpty()) "Complete study tasks and log focus sessions to increase your score." else "Computed from your real task completion and chapter progress.",
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -205,33 +202,25 @@ fun PerformanceAnalyticsScreen(
                         StudyHubCard(modifier = Modifier.weight(1f), contentPadding = PaddingValues(14.dp)) {
                             Column {
                                 Text(
-                                    text = "Study Hours",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                                    text = "Total Focus Time",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = "${studyHours}h ${studyMinutes}m",
                                     style = MaterialTheme.typography.titleLarge.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = StudyNavyPrimary
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.ArrowUpward,
-                                        contentDescription = null,
-                                        tint = StudySuccess,
-                                        modifier = Modifier.size(14.dp)
+                                Text(
+                                    text = "${sessions.size} logged sessions",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.SemiBold
                                     )
-                                    Text(
-                                        text = "+12% this week",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            color = StudySuccess,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    )
-                                }
+                                )
                             }
                         }
 
@@ -239,55 +228,59 @@ fun PerformanceAnalyticsScreen(
                             Column {
                                 Text(
                                     text = "Tasks Completed",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = "$completedTasks / $totalTasks",
                                     style = MaterialTheme.typography.titleLarge.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = StudyNavyPrimary
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.ArrowUpward,
-                                        contentDescription = null,
-                                        tint = StudySuccess,
-                                        modifier = Modifier.size(14.dp)
+                                Text(
+                                    text = "$taskCompletionRate% completion",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = StudySuccess,
+                                        fontWeight = FontWeight.SemiBold
                                     )
-                                    Text(
-                                        text = "+8% consistency",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            color = StudySuccess,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    )
-                                }
+                                )
                             }
                         }
                     }
                 }
 
-                // Subject-wise Performance Section (matching mockup!)
+                // Subject-wise Performance Section
                 item {
                     StudyHubCard(contentPadding = PaddingValues(16.dp)) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(
-                                text = "Subject-wise Performance",
+                                text = "Subject-wise Chapter Mastery",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = StudyNavyPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
 
-                            // Physics
-                            SubjectScoreBar("Physics", 82, Color(0xFF087F8C))
-                            SubjectScoreBar("Chemistry", 76, Color(0xFFE05638))
-                            SubjectScoreBar("Mathematics", 68, Color(0xFF2563EB))
-                            SubjectScoreBar("Biology", 54, Color(0xFF10B981))
-                            SubjectScoreBar("English", 72, Color(0xFF8B5CF6))
+                            if (subjects.isEmpty()) {
+                                Text(
+                                    text = "No subjects configured yet.",
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                )
+                            } else {
+                                subjects.take(6).forEach { sub ->
+                                    val subCh = chapters.filter { it.subjectId == sub.id }
+                                    val done = subCh.count { it.status == ChapterStatus.COMPLETED }
+                                    val total = subCh.size
+                                    val pct = if (total > 0) (done * 100) / total else 0
+                                    SubjectScoreBar(
+                                        subject = sub.name,
+                                        percent = pct,
+                                        barColor = try { Color(android.graphics.Color.parseColor(sub.colorHex)) } catch (_: Exception) { MaterialTheme.colorScheme.primary }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -298,12 +291,12 @@ fun PerformanceAnalyticsScreen(
                         text = "Curriculum Topic Breakdown",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = StudyNavyPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 }
 
-                items(subjects.filter { it.level == "HSC" }, key = { it.id }) { sub ->
+                items(subjects, key = { it.id }) { sub ->
                     val subCh = chapters.filter { it.subjectId == sub.id }
                     val done = subCh.count { it.status == ChapterStatus.COMPLETED }
                     val total = subCh.size
@@ -319,13 +312,13 @@ fun PerformanceAnalyticsScreen(
                                     text = sub.name,
                                     style = MaterialTheme.typography.titleSmall.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = StudyNavyPrimary
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 )
                                 Text(
                                     text = "$done / $total chapters ($pct%)",
                                     style = MaterialTheme.typography.bodySmall.copy(
-                                        color = StudySecondaryText,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontWeight = FontWeight.Medium
                                     )
                                 )
@@ -337,29 +330,29 @@ fun PerformanceAnalyticsScreen(
                                     .fillMaxWidth()
                                     .height(6.dp)
                                     .clip(RoundedCornerShape(3.dp)),
-                                color = StudyTealAction,
-                                trackColor = StudyAccentSky
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         }
                     }
                 }
             } else {
-                // Mock Tests / Exam Results
+                // Model Tests Tab
                 item {
                     StudyHubCard(contentPadding = PaddingValues(16.dp)) {
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text(
-                                text = "Model Test Scores",
+                                text = "Model Tests & Exam Results",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = StudyNavyPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                             Text(
-                                text = "• College Pre-Test (Dhaka College): 84% (A+ in Physics & Chemistry)\n• Weekly Model Test #4: 78/100 (Math vectors & calculus)\n• Practice Paper #2: 82/100 (Physics 1st Paper)",
+                                text = "Track your college pre-test and coaching mock exam scores to monitor your preparation for the final board or admission test.",
                                 style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = StudySecondaryText,
-                                    lineHeight = 24.sp
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 22.sp
                                 )
                             )
                         }
@@ -385,14 +378,14 @@ private fun SubjectScoreBar(subject: String, percent: Int, barColor: Color) {
                 text = subject,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Medium,
-                    color = StudyPrimaryText
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
             Text(
                 text = "$percent%",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    color = StudyNavyPrimary
+                    color = MaterialTheme.colorScheme.primary
                 )
             )
         }
@@ -404,7 +397,7 @@ private fun SubjectScoreBar(subject: String, percent: Int, barColor: Color) {
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp)),
             color = barColor,
-            trackColor = barColor.copy(alpha = 0.15f)
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
         )
     }
 }

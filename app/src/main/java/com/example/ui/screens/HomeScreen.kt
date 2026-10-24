@@ -1,9 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,16 +14,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.EventNote
-import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -50,17 +45,10 @@ import com.example.data.model.UserProfile
 import com.example.ui.components.CircularProgressGauge
 import com.example.ui.components.EmptyStateView
 import com.example.ui.components.NavTab
+import com.example.ui.components.StudentAvatarBadge
 import com.example.ui.components.StudyHubCard
 import com.example.ui.components.TaskCardItem
-import com.example.ui.theme.StudyAccentSky
-import com.example.ui.theme.StudyBackground
-import com.example.ui.theme.StudyBorder
-import com.example.ui.theme.StudyNavyPrimary
-import com.example.ui.theme.StudyPrimaryText
-import com.example.ui.theme.StudySecondaryText
 import com.example.ui.theme.StudySuccess
-import com.example.ui.theme.StudyTealAction
-import com.example.ui.theme.StudyTealLight
 import java.util.Calendar
 
 @Composable
@@ -76,12 +64,12 @@ fun HomeScreen(
     onOpenTask: (StudyTaskEntity) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Calculate days left to exam
+    // Real calculation of days left to exam
     val now = System.currentTimeMillis()
-    val examDate = profile?.targetExamDate ?: (now + 238L * 86400000L)
+    val examDate = profile?.targetExamDate ?: (now + 240L * 86400000L)
     val daysLeft = ((examDate - now) / 86400000L).coerceAtLeast(0L).toInt()
 
-    // Calculate today's study minutes from real saved sessions
+    // Real study time today from saved session records
     val todayStart = Calendar.getInstance().apply {
         set(Calendar.HOUR_OF_DAY, 0)
         set(Calendar.MINUTE, 0)
@@ -92,47 +80,59 @@ fun HomeScreen(
     val todayStudySeconds = todaySessions.sumOf { it.focusSeconds }
     val todayHours = (todayStudySeconds / 3600).toInt()
     val todayMinutes = ((todayStudySeconds % 3600) / 60).toInt()
-    val dailyGoalMinutes = profile?.dailyGoalMinutes ?: 300
-    val dailyGoalHours = dailyGoalMinutes / 60
+    val dailyGoalMinutes = profile?.dailyGoalMinutes ?: 180
+    val dailyGoalHours = (dailyGoalMinutes / 60).coerceAtLeast(1)
 
-    // Calculate syllabus progress
+    // Real syllabus progress from completed topics
     val totalTopics = topics.size
     val completedTopics = topics.count { it.isCompleted }
-    val syllabusPercent = if (totalTopics > 0) (completedTopics * 100) / totalTopics else 42
+    val syllabusPercent = if (totalTopics > 0) (completedTopics * 100) / totalTopics else 0
+
+    // Filter today's tasks
+    val todayEnd = todayStart + 86400000L
+    val todayTasks = tasks.filter { it.dueDate in todayStart until todayEnd }
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground),
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Greeting Header
         item {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "Good Morning, ${profile?.displayName ?: "Sayem Arafat"} 👋",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Hello, ${profile?.displayName?.ifBlank { "Student" } ?: "Student"} 👋",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Keep going! You're doing great.",
-                    style = MaterialTheme.typography.bodyMedium.copy(color = StudySecondaryText)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "${profile?.level ?: "HSC"} Candidate • ${profile?.mainGoal ?: "Exam Preparation"}",
+                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    )
+                }
+
+                // Student Avatar
+                StudentAvatarBadge(
+                    avatarId = profile?.avatarId ?: 1,
+                    name = profile?.displayName ?: "SH",
+                    size = 46.dp
                 )
             }
         }
 
-        // Exam Countdown Card (matching mockup!)
+        // Exam Countdown Card
         item {
-            StudyHubCard(
-                backgroundColor = Color.White,
-                borderColor = StudyBorder,
-                cornerRadius = 20.dp,
-                contentPadding = PaddingValues(18.dp)
-            ) {
+            StudyHubCard(contentPadding = PaddingValues(18.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -141,14 +141,14 @@ fun HomeScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
-                            color = StudyAccentSky,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                             modifier = Modifier.padding(bottom = 8.dp)
                         ) {
                             Text(
-                                text = "Exam Countdown",
+                                text = "Exam Target",
                                 style = MaterialTheme.typography.labelMedium.copy(
-                                    color = StudyNavyPrimary,
-                                    fontWeight = FontWeight.SemiBold
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
                                 ),
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                             )
@@ -156,7 +156,7 @@ fun HomeScreen(
                         Text(
                             text = profile?.targetExamName ?: "HSC 2026",
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                color = StudySecondaryText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Medium
                             )
                         )
@@ -166,7 +166,7 @@ fun HomeScreen(
                                 text = "$daysLeft",
                                 style = MaterialTheme.typography.headlineLarge.copy(
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = StudyNavyPrimary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontSize = 32.sp
                                 )
                             )
@@ -174,7 +174,7 @@ fun HomeScreen(
                             Text(
                                 text = "Days Left",
                                 style = MaterialTheme.typography.titleMedium.copy(
-                                    color = StudySecondaryText,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.Medium
                                 )
                             )
@@ -183,16 +183,16 @@ fun HomeScreen(
 
                     // Progress ring
                     CircularProgressGauge(
-                        progress = 0.65f,
+                        progress = (1f - (daysLeft / 365f)).coerceIn(0.1f, 1f),
                         modifier = Modifier.size(68.dp),
                         strokeWidth = 7.dp,
-                        progressColor = StudyTealAction,
-                        trackColor = StudyAccentSky
+                        progressColor = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
                     ) {
                         Icon(
                             imageVector = Icons.Default.MenuBook,
                             contentDescription = null,
-                            tint = StudyTealAction,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -200,7 +200,7 @@ fun HomeScreen(
             }
         }
 
-        // Two Mini Stats Cards: Syllabus Progress & Today's Study Time (matching mockup!)
+        // Two Mini Stats Cards: Syllabus Progress & Today's Study Time
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -216,7 +216,7 @@ fun HomeScreen(
                         Text(
                             text = "Syllabus Progress",
                             style = MaterialTheme.typography.bodySmall.copy(
-                                color = StudySecondaryText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Medium
                             )
                         )
@@ -225,18 +225,18 @@ fun HomeScreen(
                             text = "$syllabusPercent%",
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = StudyNavyPrimary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         LinearProgressIndicator(
-                            progress = { syllabusPercent / 100f },
+                            progress = { (syllabusPercent / 100f).coerceIn(0f, 1f) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(6.dp)
                                 .clip(RoundedCornerShape(3.dp)),
-                            color = StudyTealAction,
-                            trackColor = StudyAccentSky
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     }
                 }
@@ -249,9 +249,9 @@ fun HomeScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Today's Study Time",
+                            text = "Today's Focus Time",
                             style = MaterialTheme.typography.bodySmall.copy(
-                                color = StudySecondaryText,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontWeight = FontWeight.Medium
                             )
                         )
@@ -261,24 +261,24 @@ fun HomeScreen(
                                 text = "${todayHours}h ${todayMinutes}m",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = StudyNavyPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "/ ${dailyGoalHours}h",
-                                style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         LinearProgressIndicator(
-                            progress = { (todayStudySeconds / (dailyGoalMinutes * 60f)).coerceIn(0f, 1f) },
+                            progress = { if (dailyGoalMinutes > 0) (todayStudySeconds / (dailyGoalMinutes * 60f)).coerceIn(0f, 1f) else 0f },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(6.dp)
                                 .clip(RoundedCornerShape(3.dp)),
                             color = StudySuccess,
-                            trackColor = Color(0xFFE3F7EE)
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
                     }
                 }
@@ -295,44 +295,34 @@ fun HomeScreen(
                     onClick = onAddTask,
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
+                        .height(46.dp)
                         .testTag("home_add_task_button"),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = StudyTealAction,
-                        contentColor = Color.White
-                    ),
-                    contentPadding = PaddingValues(horizontal = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Add Task", fontSize = 13.sp)
+                    Text(text = "Add Task", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
 
                 Button(
                     onClick = onStartFocus,
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
+                        .height(46.dp)
                         .testTag("home_start_focus_button"),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = StudyNavyPrimary,
-                        contentColor = Color.White
-                    ),
-                    contentPadding = PaddingValues(horizontal = 8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                        containerColor = MaterialTheme.colorScheme.secondary,
+                        contentColor = MaterialTheme.colorScheme.onSecondary
                     )
+                ) {
+                    Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "Start Focus", fontSize = 13.sp)
+                    Text(text = "Start Focus", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -348,7 +338,7 @@ fun HomeScreen(
                     text = "Today's Plan",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
                 TextButton(
@@ -356,26 +346,26 @@ fun HomeScreen(
                     modifier = Modifier.testTag("home_view_all_tasks_button")
                 ) {
                     Text(
-                        text = "View All",
-                        style = MaterialTheme.typography.labelMedium.copy(color = StudyTealAction)
+                        text = "View Planner",
+                        style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.primary)
                     )
                 }
             }
         }
 
-        // Task Items List
-        if (tasks.isEmpty()) {
+        // Task Items or Genuine Empty State
+        if (todayTasks.isEmpty()) {
             item {
                 EmptyStateView(
                     icon = Icons.Outlined.EventNote,
-                    title = "No tasks for today",
-                    subtitle = "Plan your study sessions to stay on track.",
+                    title = "Your study plan starts here",
+                    subtitle = "Plan your topics for today to build daily momentum.",
                     ctaText = "+ Add First Task",
                     onCtaClick = onAddTask
                 )
             }
         } else {
-            items(tasks.take(5), key = { it.id }) { task ->
+            items(todayTasks, key = { it.id }) { task ->
                 TaskCardItem(
                     task = task,
                     onToggleComplete = { onToggleTaskComplete(task.id, !task.isCompleted) },

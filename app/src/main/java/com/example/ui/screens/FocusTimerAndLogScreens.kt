@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
@@ -54,27 +55,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.SessionMode
 import com.example.data.model.StudySessionEntity
 import com.example.ui.components.CircularProgressGauge
 import com.example.ui.components.EmptyStateView
-import com.example.ui.components.PrimaryButton
 import com.example.ui.components.StudyHubCard
 import com.example.ui.theme.StudyAccentSky
-import com.example.ui.theme.StudyBackground
-import com.example.ui.theme.StudyBorder
-import com.example.ui.theme.StudyNavyPrimary
-import com.example.ui.theme.StudyPrimaryText
-import com.example.ui.theme.StudySecondaryText
-import com.example.ui.theme.StudySuccess
 import com.example.ui.theme.StudyTealAction
-import com.example.ui.theme.StudyTealLight
 import com.example.ui.viewmodel.TimerState
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -112,7 +103,7 @@ fun FocusTimerScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(horizontal = 20.dp, vertical = 12.dp),
@@ -130,7 +121,7 @@ fun FocusTimerScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = StudyNavyPrimary
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -138,7 +129,7 @@ fun FocusTimerScreen(
                 text = "Focus Timer",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    color = StudyNavyPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -152,21 +143,21 @@ fun FocusTimerScreen(
         ) {
             Surface(
                 shape = RoundedCornerShape(24.dp),
-                color = Color.White,
-                border = androidx.compose.foundation.BorderStroke(1.dp, StudyBorder),
+                color = MaterialTheme.colorScheme.surface,
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 modifier = Modifier.padding(4.dp)
             ) {
                 Row(modifier = Modifier.padding(4.dp)) {
                     Surface(
                         shape = RoundedCornerShape(20.dp),
-                        color = if (mode == SessionMode.POMODORO) StudyTealAction else Color.Transparent,
+                        color = if (mode == SessionMode.POMODORO) MaterialTheme.colorScheme.primary else Color.Transparent,
                         modifier = Modifier
                             .clickable { onSetMode(SessionMode.POMODORO) }
                             .testTag("timer_mode_pomodoro")
                     ) {
                         Text(
                             text = "Pomodoro 25/5",
-                            color = if (mode == SessionMode.POMODORO) Color.White else StudySecondaryText,
+                            color = if (mode == SessionMode.POMODORO) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         )
@@ -174,14 +165,14 @@ fun FocusTimerScreen(
 
                     Surface(
                         shape = RoundedCornerShape(20.dp),
-                        color = if (mode == SessionMode.CUSTOM) StudyTealAction else Color.Transparent,
+                        color = if (mode == SessionMode.CUSTOM) MaterialTheme.colorScheme.primary else Color.Transparent,
                         modifier = Modifier
                             .clickable { onSetMode(SessionMode.CUSTOM) }
                             .testTag("timer_mode_custom")
                     ) {
                         Text(
                             text = "Custom",
-                            color = if (mode == SessionMode.CUSTOM) Color.White else StudySecondaryText,
+                            color = if (mode == SessionMode.CUSTOM) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         )
@@ -195,7 +186,7 @@ fun FocusTimerScreen(
         // Subject selector chip row
         Text(
             text = "Studying: $selectedSubject",
-            style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
         )
         Spacer(modifier = Modifier.height(6.dp))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -206,15 +197,15 @@ fun FocusTimerScreen(
                     onClick = { onSetSubject(sub) },
                     label = { Text(sub) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = StudyTealLight,
-                        selectedLabelColor = StudyTealAction,
-                        containerColor = Color.White,
-                        labelColor = StudySecondaryText
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = isSelected,
-                        borderColor = if (isSelected) StudyTealAction else StudyBorder
+                        borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                     )
                 )
             }
@@ -222,13 +213,13 @@ fun FocusTimerScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Large Circular Countdown Display (matching mockup!)
+        // Large Circular Countdown Display (matching mockup)
         CircularProgressGauge(
             progress = progress,
             modifier = Modifier.size(240.dp),
             strokeWidth = 14.dp,
-            progressColor = StudyTealAction,
-            trackColor = StudyAccentSky
+            progressColor = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
@@ -236,7 +227,7 @@ fun FocusTimerScreen(
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontSize = 44.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = StudyNavyPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         letterSpacing = (-1).sp
                     ),
                     modifier = Modifier.testTag("timer_countdown_display")
@@ -250,7 +241,7 @@ fun FocusTimerScreen(
                         TimerState.IDLE -> "Ready"
                     },
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        color = StudySecondaryText,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -264,7 +255,10 @@ fun FocusTimerScreen(
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                 Text(
                     text = "Focus Duration: $durationMinutes min",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 )
                 Slider(
                     value = durationMinutes.toFloat(),
@@ -272,8 +266,8 @@ fun FocusTimerScreen(
                     valueRange = 5f..120f,
                     steps = 22,
                     colors = SliderDefaults.colors(
-                        thumbColor = StudyTealAction,
-                        activeTrackColor = StudyTealAction
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary
                     )
                 )
             }
@@ -297,7 +291,7 @@ fun FocusTimerScreen(
                             .width(180.dp)
                             .testTag("timer_start_button"),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -309,10 +303,10 @@ fun FocusTimerScreen(
                         onClick = onEndTimer,
                         modifier = Modifier
                             .size(52.dp)
-                            .background(Color.White, CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                             .testTag("timer_stop_button")
                     ) {
-                        Icon(imageVector = Icons.Default.Stop, contentDescription = "End", tint = Color(0xFFD14343))
+                        Icon(imageVector = Icons.Default.Stop, contentDescription = "End", tint = MaterialTheme.colorScheme.error)
                     }
                     Spacer(modifier = Modifier.width(24.dp))
                     Button(
@@ -322,7 +316,7 @@ fun FocusTimerScreen(
                             .width(150.dp)
                             .testTag("timer_pause_button"),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = StudyNavyPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                     ) {
                         Icon(imageVector = Icons.Default.Pause, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -334,10 +328,10 @@ fun FocusTimerScreen(
                         onClick = onResetTimer,
                         modifier = Modifier
                             .size(52.dp)
-                            .background(Color.White, CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                             .testTag("timer_reset_button")
                     ) {
-                        Icon(imageVector = Icons.Default.Refresh, contentDescription = "Reset", tint = StudySecondaryText)
+                        Icon(imageVector = Icons.Default.Refresh, contentDescription = "Reset", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Spacer(modifier = Modifier.width(20.dp))
                     Button(
@@ -347,7 +341,7 @@ fun FocusTimerScreen(
                             .width(140.dp)
                             .testTag("timer_resume_button"),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null)
                         Spacer(modifier = Modifier.width(6.dp))
@@ -358,10 +352,10 @@ fun FocusTimerScreen(
                         onClick = onEndTimer,
                         modifier = Modifier
                             .size(52.dp)
-                            .background(Color.White, CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                             .testTag("timer_finish_button")
                     ) {
-                        Icon(imageVector = Icons.Default.Stop, contentDescription = "Finish", tint = Color(0xFFD14343))
+                        Icon(imageVector = Icons.Default.Stop, contentDescription = "Finish", tint = MaterialTheme.colorScheme.error)
                     }
                 }
                 TimerState.COMPLETED -> {
@@ -371,7 +365,7 @@ fun FocusTimerScreen(
                             .height(56.dp)
                             .width(180.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction)
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text("Start Another", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
@@ -380,7 +374,7 @@ fun FocusTimerScreen(
         }
     }
 
-    // Save Session Summary Dialog (PRD 6.11)
+    // Save Session Summary Dialog
     if (showSaveDialog) {
         val studiedSecs = (totalSeconds - remainingSeconds).coerceAtLeast(60L)
         val studiedMins = studiedSecs / 60
@@ -391,7 +385,7 @@ fun FocusTimerScreen(
                     text = "Session Completed! 🎉",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             },
@@ -399,7 +393,7 @@ fun FocusTimerScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         text = "Great job! You focused on $selectedSubject for $studiedMins minutes.",
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface)
                     )
                     OutlinedTextField(
                         value = sessionNotes,
@@ -416,7 +410,7 @@ fun FocusTimerScreen(
                         onSaveSession(sessionNotes)
                         sessionNotes = ""
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.testTag("timer_save_session_button")
                 ) {
                     Text("Save to Log")
@@ -429,7 +423,7 @@ fun FocusTimerScreen(
                         sessionNotes = ""
                     }
                 ) {
-                    Text("Discard", color = StudySecondaryText)
+                    Text("Discard", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )
@@ -459,7 +453,7 @@ fun SessionLogScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -477,7 +471,7 @@ fun SessionLogScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = StudyNavyPrimary
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -485,7 +479,7 @@ fun SessionLogScreen(
                 text = "Study Session Log",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    color = StudyNavyPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -503,20 +497,20 @@ fun SessionLogScreen(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(20.dp),
-                        color = Color.White,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, StudyBorder)
+                        color = MaterialTheme.colorScheme.surface,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
                         Row(modifier = Modifier.padding(4.dp)) {
                             listOf("Today", "Week", "Month").forEach { tab ->
                                 val isSelected = selectedFilter == tab
                                 Surface(
                                     shape = RoundedCornerShape(16.dp),
-                                    color = if (isSelected) StudyTealAction else Color.Transparent,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                                     modifier = Modifier.clickable { selectedFilter = tab }
                                 ) {
                                     Text(
                                         text = tab,
-                                        color = if (isSelected) Color.White else StudySecondaryText,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                                     )
@@ -527,7 +521,7 @@ fun SessionLogScreen(
                 }
             }
 
-            // Summary Metrics Card matching mockup
+            // Summary Metrics Card
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -537,14 +531,14 @@ fun SessionLogScreen(
                         Column {
                             Text(
                                 text = "Total Study Time",
-                                style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "${totalHours}h ${totalMinutes}m",
                                 style = MaterialTheme.typography.titleLarge.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = StudyNavyPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -554,14 +548,14 @@ fun SessionLogScreen(
                         Column {
                             Text(
                                 text = "Focus Sessions",
-                                style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "${sessions.size}",
                                 style = MaterialTheme.typography.titleLarge.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = StudyNavyPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
@@ -570,50 +564,52 @@ fun SessionLogScreen(
             }
 
             // Subject Distribution Section
-            item {
-                StudyHubCard(contentPadding = PaddingValues(16.dp)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text(
-                            text = "Subject Distribution",
-                            style = MaterialTheme.typography.titleSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = StudyNavyPrimary
+            if (subjectTotals.isNotEmpty()) {
+                item {
+                    StudyHubCard(contentPadding = PaddingValues(16.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text(
+                                text = "Subject Distribution",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             )
-                        )
-                        subjectTotals.forEach { (sub, secs) ->
-                            val hours = secs / 3600
-                            val mins = (secs % 3600) / 60
-                            val fraction = if (totalSeconds > 0) secs.toFloat() / totalSeconds.toFloat() else 0f
-                            Column {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(text = sub, style = MaterialTheme.typography.bodyMedium)
-                                    Text(
-                                        text = "${hours}h ${mins}m",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = StudySecondaryText,
-                                            fontWeight = FontWeight.Medium
+                            subjectTotals.forEach { (sub, secs) ->
+                                val hours = secs / 3600
+                                val mins = (secs % 3600) / 60
+                                val fraction = if (totalSeconds > 0) secs.toFloat() / totalSeconds.toFloat() else 0f
+                                Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(text = sub, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface))
+                                        Text(
+                                            text = "${hours}h ${mins}m",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                fontWeight = FontWeight.Medium
+                                            )
                                         )
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    LinearProgressIndicator(
+                                        progress = { fraction },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(6.dp)
+                                            .clip(RoundedCornerShape(3.dp)),
+                                        color = when (sub) {
+                                            "Physics" -> Color(0xFF087F8C)
+                                            "Chemistry" -> Color(0xFFE05638)
+                                            "Mathematics" -> Color(0xFF2563EB)
+                                            "Biology" -> Color(0xFF10B981)
+                                            else -> MaterialTheme.colorScheme.primary
+                                        },
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(4.dp))
-                                LinearProgressIndicator(
-                                    progress = { fraction },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(6.dp)
-                                        .clip(RoundedCornerShape(3.dp)),
-                                    color = when (sub) {
-                                        "Physics" -> Color(0xFF087F8C)
-                                        "Chemistry" -> Color(0xFFE05638)
-                                        "Mathematics" -> Color(0xFF2563EB)
-                                        "Biology" -> Color(0xFF10B981)
-                                        else -> StudyTealAction
-                                    },
-                                    trackColor = StudyAccentSky
-                                )
                             }
                         }
                     }
@@ -626,16 +622,17 @@ fun SessionLogScreen(
                     text = "Session History",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
 
             if (sessions.isEmpty()) {
                 item {
-                    Text(
-                        text = "No focus sessions recorded yet.",
-                        style = MaterialTheme.typography.bodyMedium.copy(color = StudySecondaryText)
+                    EmptyStateView(
+                        icon = Icons.Default.History,
+                        title = "No focus sessions recorded",
+                        subtitle = "Start the timer when studying to track your daily progress and building streaks."
                     )
                 }
             } else {
@@ -651,19 +648,19 @@ fun SessionLogScreen(
                                     text = s.subjectName,
                                     style = MaterialTheme.typography.titleSmall.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = StudyNavyPrimary
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 )
                                 if (!s.notes.isNullOrBlank()) {
                                     Text(
                                         text = s.notes,
-                                        style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                 }
                                 Text(
                                     text = dateFormatter.format(Date(s.startedAt)),
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        color = StudySecondaryText,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 11.sp
                                     )
                                 )
@@ -673,7 +670,7 @@ fun SessionLogScreen(
                                 text = "${mins}m",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = StudyTealAction
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             )
 
@@ -683,7 +680,7 @@ fun SessionLogScreen(
                                 Icon(
                                     imageVector = Icons.Default.Delete,
                                     contentDescription = "Delete Session",
-                                    tint = StudySecondaryText.copy(alpha = 0.6f),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -709,7 +706,7 @@ fun SessionLogScreen(
                         onDeleteSession(session.id)
                         sessionToDelete = null
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD14343))
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
                     Text("Delete")
                 }

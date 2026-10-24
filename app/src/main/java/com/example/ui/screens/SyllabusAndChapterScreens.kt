@@ -24,14 +24,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.PlayCircleOutline
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -40,7 +35,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -72,19 +66,13 @@ import com.example.data.model.ChapterEntity
 import com.example.data.model.ChapterStatus
 import com.example.data.model.SubjectEntity
 import com.example.data.model.TopicEntity
-import com.example.ui.components.CircularProgressGauge
+import com.example.ui.components.EmptyStateView
 import com.example.ui.components.PrimaryButton
 import com.example.ui.components.StudyHubCard
 import com.example.ui.theme.StudyAccentSky
-import com.example.ui.theme.StudyBackground
-import com.example.ui.theme.StudyBorder
-import com.example.ui.theme.StudyNavyPrimary
-import com.example.ui.theme.StudyPrimaryText
-import com.example.ui.theme.StudySecondaryText
 import com.example.ui.theme.StudySuccess
 import com.example.ui.theme.StudyTealAction
 import com.example.ui.theme.StudyTealDark
-import com.example.ui.theme.StudyTealLight
 
 @Composable
 fun SyllabusScreen(
@@ -114,7 +102,7 @@ fun SyllabusScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -127,12 +115,12 @@ fun SyllabusScreen(
                     text = "Syllabus Tracker",
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
 
-            // Academic Level Filter Pills (matching mockup: SSC, HSC, Admission)
+            // Academic Level Filter Pills (SSC, HSC, Admission)
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -149,17 +137,17 @@ fun SyllabusScreen(
                                     selectedSubjectId = newSubs.firstOrNull()?.id ?: ""
                                 }
                                 .testTag("syllabus_level_tab_$level"),
-                            color = if (isSelected) StudyTealAction else Color.White,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(20.dp),
                             border = androidx.compose.foundation.BorderStroke(
                                 1.dp,
-                                if (isSelected) StudyTealAction else StudyBorder
+                                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                             )
                         ) {
                             Text(
                                 text = level,
                                 style = MaterialTheme.typography.labelMedium.copy(
-                                    color = if (isSelected) Color.White else StudySecondaryText,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.SemiBold
                                 ),
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -169,7 +157,7 @@ fun SyllabusScreen(
                 }
             }
 
-            // Subject Chips Row (matching mockup: Physics, Chemistry, Math, Biology, etc.)
+            // Subject Chips Row
             item {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -182,15 +170,15 @@ fun SyllabusScreen(
                             onClick = { selectedSubjectId = sub.id },
                             label = { Text(sub.name) },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = StudyNavyPrimary,
-                                selectedLabelColor = Color.White,
-                                containerColor = Color.White,
-                                labelColor = StudySecondaryText
+                                selectedContainerColor = MaterialTheme.colorScheme.secondary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onSecondary,
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                             ),
                             border = FilterChipDefaults.filterChipBorder(
                                 enabled = true,
                                 selected = isSelected,
-                                borderColor = if (isSelected) StudyNavyPrimary else StudyBorder
+                                borderColor = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant
                             ),
                             modifier = Modifier.testTag("syllabus_subject_${sub.name}")
                         )
@@ -209,13 +197,13 @@ fun SyllabusScreen(
                                 )
                             },
                             colors = FilterChipDefaults.filterChipColors(
-                                containerColor = Color.White,
-                                labelColor = StudyTealAction
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                labelColor = MaterialTheme.colorScheme.primary
                             ),
                             border = FilterChipDefaults.filterChipBorder(
                                 enabled = true,
                                 selected = false,
-                                borderColor = StudyTealAction
+                                borderColor = MaterialTheme.colorScheme.primary
                             )
                         )
                     }
@@ -223,67 +211,86 @@ fun SyllabusScreen(
             }
 
             // Subject Progress Overview Card
-            item {
-                StudyHubCard(
-                    contentPadding = PaddingValues(16.dp),
-                    backgroundColor = Color.White
-                ) {
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = activeSubject?.name ?: "Physics",
-                                style = MaterialTheme.typography.titleLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = StudyNavyPrimary
+            if (activeSubject != null) {
+                item {
+                    StudyHubCard(contentPadding = PaddingValues(16.dp)) {
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = activeSubject.name,
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 )
-                            )
-                            Text(
-                                text = "$completedChapters/$totalChapters completed",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = StudySecondaryText,
-                                    fontWeight = FontWeight.Medium
+                                Text(
+                                    text = "$completedChapters/$totalChapters completed",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontWeight = FontWeight.Medium
+                                    )
                                 )
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            LinearProgressIndicator(
+                                progress = { if (totalChapters > 0) completedChapters.toFloat() / totalChapters else 0f },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(4.dp)),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
                             )
                         }
+                    }
+                }
 
-                        Spacer(modifier = Modifier.height(10.dp))
+                // Chapter List Header
+                item {
+                    Text(
+                        text = "Chapters",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                }
 
-                        LinearProgressIndicator(
-                            progress = { if (totalChapters > 0) completedChapters.toFloat() / totalChapters else 0f },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            color = StudyTealAction,
-                            trackColor = StudyAccentSky
+                if (subjectChapters.isEmpty()) {
+                    item {
+                        EmptyStateView(
+                            icon = Icons.Default.Check,
+                            title = "No chapters yet",
+                            subtitle = "Chapters for ${activeSubject.name} will appear here."
+                        )
+                    }
+                } else {
+                    // Chapters List
+                    items(subjectChapters, key = { it.id }) { ch ->
+                        ChapterCardItem(
+                            chapter = ch,
+                            onClick = {
+                                onOpenChapter(ch.id, ch.subjectId, activeSubject.name)
+                            }
                         )
                     }
                 }
-            }
-
-            // Chapter List Header
-            item {
-                Text(
-                    text = "Chapters",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+            } else {
+                item {
+                    EmptyStateView(
+                        icon = Icons.Default.Add,
+                        title = "No subjects found",
+                        subtitle = "Select another academic level or create a custom subject.",
+                        ctaText = "+ Add Subject",
+                        onCtaClick = { showAddSubjectDialog = true }
                     )
-                )
-            }
-
-            // Chapters List matching mockup
-            items(subjectChapters, key = { it.id }) { ch ->
-                ChapterCardItem(
-                    chapter = ch,
-                    onClick = {
-                        onOpenChapter(ch.id, ch.subjectId, activeSubject?.name ?: "Subject")
-                    }
-                )
+                }
             }
 
             item {
@@ -314,7 +321,7 @@ fun SyllabusScreen(
                             showAddSubjectDialog = false
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("Add")
                 }
@@ -350,8 +357,8 @@ private fun ChapterCardItem(
                     .background(
                         when (chapter.status) {
                             ChapterStatus.COMPLETED -> StudySuccess
-                            ChapterStatus.IN_PROGRESS -> StudyTealLight
-                            ChapterStatus.NOT_STARTED -> Color(0xFFF1F5F9)
+                            ChapterStatus.IN_PROGRESS -> MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                            ChapterStatus.NOT_STARTED -> MaterialTheme.colorScheme.surfaceVariant
                         }
                     ),
                 contentAlignment = Alignment.Center
@@ -366,12 +373,12 @@ private fun ChapterCardItem(
                     ChapterStatus.IN_PROGRESS -> Box(
                         modifier = Modifier
                             .size(10.dp)
-                            .background(StudyTealAction, CircleShape)
+                            .background(MaterialTheme.colorScheme.primary, CircleShape)
                     )
                     ChapterStatus.NOT_STARTED -> Icon(
                         imageVector = Icons.Default.RadioButtonUnchecked,
                         contentDescription = "Not Started",
-                        tint = StudySecondaryText,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -384,7 +391,7 @@ private fun ChapterCardItem(
                     text = chapter.title,
                     style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.SemiBold,
-                        color = StudyPrimaryText
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -397,8 +404,8 @@ private fun ChapterCardItem(
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = when (chapter.status) {
                             ChapterStatus.COMPLETED -> StudySuccess
-                            ChapterStatus.IN_PROGRESS -> StudyTealAction
-                            ChapterStatus.NOT_STARTED -> StudySecondaryText
+                            ChapterStatus.IN_PROGRESS -> MaterialTheme.colorScheme.primary
+                            ChapterStatus.NOT_STARTED -> MaterialTheme.colorScheme.onSurfaceVariant
                         },
                         fontWeight = FontWeight.Medium
                     )
@@ -430,7 +437,7 @@ fun ChapterDetailScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -448,7 +455,7 @@ fun ChapterDetailScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = StudyNavyPrimary
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -456,7 +463,7 @@ fun ChapterDetailScreen(
                 text = "Chapter Details",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    color = StudyNavyPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -466,7 +473,7 @@ fun ChapterDetailScreen(
             contentPadding = PaddingValues(18.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Dark Teal Chapter Header Banner (matching mockup!)
+            // Dark Teal Chapter Header Banner (matching mockup)
             item {
                 Surface(
                     shape = RoundedCornerShape(20.dp),
@@ -536,12 +543,12 @@ fun ChapterDetailScreen(
                 TabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = Color.Transparent,
-                    contentColor = StudyTealAction,
+                    contentColor = MaterialTheme.colorScheme.primary,
                     divider = {},
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
                             Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                            color = StudyTealAction
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 ) {
@@ -569,12 +576,9 @@ fun ChapterDetailScreen(
             }
 
             if (selectedTab == 0) {
-                // Topic items checklist matching mockup
+                // Topic items checklist
                 items(topics, key = { it.id }) { topic ->
-                    StudyHubCard(
-                        contentPadding = PaddingValues(14.dp),
-                        borderColor = if (topic.isCompleted) StudyBorder else StudyBorder
-                    ) {
+                    StudyHubCard(contentPadding = PaddingValues(14.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
@@ -585,8 +589,8 @@ fun ChapterDetailScreen(
                                     onToggleTopic(topic.id, isChecked)
                                 },
                                 colors = CheckboxDefaults.colors(
-                                    checkedColor = StudyTealAction,
-                                    uncheckedColor = StudySecondaryText
+                                    checkedColor = MaterialTheme.colorScheme.primary,
+                                    uncheckedColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 ),
                                 modifier = Modifier.testTag("topic_checkbox_${topic.id}")
                             )
@@ -596,7 +600,7 @@ fun ChapterDetailScreen(
                             Text(
                                 text = topic.title,
                                 style = MaterialTheme.typography.bodyLarge.copy(
-                                    color = if (topic.isCompleted) StudySecondaryText else StudyPrimaryText,
+                                    color = if (topic.isCompleted) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
                                     fontWeight = if (topic.isCompleted) FontWeight.Normal else FontWeight.Medium
                                 ),
                                 modifier = Modifier.weight(1f)
@@ -609,7 +613,7 @@ fun ChapterDetailScreen(
                                 Icon(
                                     imageVector = if (topic.isWeak) Icons.Filled.Flag else Icons.Outlined.Flag,
                                     contentDescription = "Flag weak area",
-                                    tint = if (topic.isWeak) Color(0xFFD97706) else StudySecondaryText.copy(alpha = 0.5f),
+                                    tint = if (topic.isWeak) Color(0xFFD97706) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -635,14 +639,14 @@ fun ChapterDetailScreen(
                                 text = "Recommended Study Resources",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = StudyNavyPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "• NCTB Official Textbook (Class 11-12 Physics 1st Paper)\n• Previous 5 Years Board Questions (Dhaka, Rajshahi, Chittagong)\n• Formula Revision Sheet (Available in Notes tab)",
+                                text = "• NCTB Official Textbook\n• Previous 5 Years Board Questions (Dhaka, Rajshahi, Chittagong)\n• Formula Revision Sheet (Available in Tools > Notes)",
                                 style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = StudySecondaryText,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     lineHeight = 22.sp
                                 )
                             )
@@ -668,7 +672,7 @@ fun ChapterDetailScreen(
                         onMarkChapterComplete()
                         showCompleteConfirmDialog = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("Confirm")
                 }

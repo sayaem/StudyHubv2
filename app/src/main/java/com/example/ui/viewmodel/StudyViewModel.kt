@@ -1,11 +1,11 @@
 package com.example.ui.viewmodel
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.InitialDataSeeder
 import com.example.data.local.StudyHubDatabase
-import com.example.data.model.AcademicLevel
 import com.example.data.model.ChapterEntity
 import com.example.data.model.ChapterStatus
 import com.example.data.model.FlashcardEntity
@@ -22,13 +22,13 @@ import com.example.data.model.TopicEntity
 import com.example.data.model.UserProfile
 import com.example.data.repository.StudyRepository
 import com.example.ui.components.NavTab
+import com.example.util.StudyHubNotificationManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -37,8 +37,6 @@ import java.util.UUID
 sealed class Screen {
     object Splash : Screen()
     object Onboarding : Screen()
-    object LevelSelect : Screen()
-    object ProfileSetup : Screen()
     data class Main(val tab: NavTab = NavTab.HOME) : Screen()
     data class ChapterDetail(val chapterId: String, val subjectId: String, val subjectName: String) : Screen()
     data class AddTask(val initialDate: Long) : Screen()
@@ -65,6 +63,13 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = StudyHubDatabase.getDatabase(application)
     private val repository = StudyRepository(db.studyHubDao())
+
+    init {
+        StudyHubNotificationManager.initNotificationChannels(application)
+        viewModelScope.launch {
+            InitialDataSeeder.seedIfNeeded(db.studyHubDao())
+        }
+    }
 
     // Navigation back stack
     private val _screenStack = MutableStateFlow<List<Screen>>(listOf(Screen.Splash))
@@ -143,15 +148,9 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
     private var sessionStartTime: Long = 0L
     private var targetEndTime: Long = 0L
 
-    // Notification message / Toast
+    // Toast message
     private val _toastMessage = MutableStateFlow<String?>(null)
     val toastMessage: StateFlow<String?> = _toastMessage.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            InitialDataSeeder.seedIfNeeded(db.studyHubDao())
-        }
-    }
 
     // Navigation methods
     fun navigateTo(screen: Screen) {
@@ -197,33 +196,101 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
         _selectedDate.value = getStartOfDay(cal.timeInMillis)
     }
 
-    // Profile Setup
-    fun completeOnboardingAndSetup(
+    // Theme switching
+    fun setThemeMode(mode: String) {
+        viewModelScope.launch {
+            val profile = userProfile.value ?: UserProfile()
+            repository.saveProfile(profile.copy(themeMode = mode))
+            showToast("Theme changed to $mode")
+        }
+    }
+
+    // Multi-step Onboarding Completion
+    fun completeComprehensiveOnboarding(
         displayName: String,
         level: String,
+        admissionCategory: String,
         board: String,
         groupName: String,
         targetExamName: String,
-        targetExamDate: Long
+        targetExamDate: Long,
+        dailyGoalMinutes: Int,
+        preferredFocusMinutes: Int,
+        preferredBreakMinutes: Int,
+        mainGoal: String,
+        studyReminders: Boolean,
+        dailyGoalReminders: Boolean,
+        examReminders: Boolean,
+        avatarId: Int,
+        selectedSubjectNames: List<String>
     ) {
         viewModelScope.launch {
-            val updated = UserProfile(
+            val profile = UserProfile(
                 id = "default_user",
-                displayName = displayName.ifBlank { "Sayem Arafat" },
+                displayName = displayName.ifBlank { "Student" },
                 level = level,
+                admissionCategory = admissionCategory,
                 board = board,
                 groupName = groupName,
-                targetExamName = targetExamName.ifBlank { "$level 2026" },
+                targetExamName = targetExamName,
                 targetExamDate = targetExamDate,
-                dailyGoalMinutes = 300,
+                dailyGoalMinutes = dailyGoalMinutes,
+                preferredFocusMinutes = preferredFocusMinutes,
+                preferredBreakMinutes = preferredBreakMinutes,
+                mainGoal = mainGoal,
                 preferredReminderTime = "08:00 AM",
+                studyRemindersEnabled = studyReminders,
+                dailyGoalRemindersEnabled = dailyGoalReminders,
+                examCountdownRemindersEnabled = examReminders,
+                avatarId = avatarId,
+                themeMode = userProfile.value?.themeMode ?: "SYSTEM",
                 isOnboardingCompleted = true,
-                streakDays = 7,
+                streakDays = 0,
                 lastActiveDate = System.currentTimeMillis(),
-                totalStudyMinutes = 2550
+                totalStudyMinutes = 0
             )
-            repository.saveProfile(updated)
+            repository.saveProfile(profile)
+
+            // Auto-schedule reminders if enabled
+            if (studyReminders) {
+                repository.saveReminder(
+                    ReminderEntity(
+                        id = "rem_daily_study",
+                        title = "Daily Study Plan",
+                        subtitle = "Review and start your planned topics",
+                        scheduledTimeFormatted = "08:00 AM",
+                        scheduledTimestamp = System.currentTimeMillis() + 86400000L,
+                        reminderType = ReminderType.STUDY,
+                        isEnabled = true
+                    )
+                )
+            }
+
+            if (examReminders) {
+                repository.saveReminder(
+                    ReminderEntity(
+                        id = "rem_exam_target",
+                        title = "Target Exam",
+                        subtitle = targetExamName,
+                        scheduledTimeFormatted = "Daily Countdown",
+                        scheduledTimestamp = targetExamDate,
+                        reminderType = ReminderType.EXAM,
+                        isEnabled = true
+                    )
+                )
+            }
+
             _screenStack.value = listOf(Screen.Main(NavTab.HOME))
+            showToast("Welcome to StudyHub, ${profile.displayName}!")
+        }
+    }
+
+    fun resetOnboarding() {
+        viewModelScope.launch {
+            val current = userProfile.value ?: UserProfile()
+            repository.saveProfile(current.copy(isOnboardingCompleted = false))
+            _screenStack.value = listOf(Screen.Onboarding)
+            showToast("Onboarding reset. Welcome back!")
         }
     }
 
@@ -259,7 +326,7 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
                 notes = notes.trim()
             )
             repository.saveTask(newTask)
-            showToast("Task added to your plan")
+            showToast("Task scheduled for your study plan")
             navigateBack()
         }
     }
@@ -285,11 +352,10 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Chapter & Topic progress
+    // Syllabus Chapter & Topic Actions
     fun toggleTopicComplete(topicId: String, isCompleted: Boolean, chapterId: String) {
         viewModelScope.launch {
             repository.updateTopicCompletion(topicId, isCompleted)
-            // Re-evaluate chapter status
             val topics = allTopics.value.filter { it.chapterId == chapterId }
             val completedCount = topics.count { if (it.id == topicId) isCompleted else it.isCompleted }
             val newStatus = when {
@@ -330,7 +396,7 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Focus Timer Operations
+    // Focus Timer
     fun setTimerMode(mode: SessionMode) {
         if (_timerState.value != TimerState.RUNNING) {
             _timerMode.value = mode
@@ -418,7 +484,7 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
     fun endTimerPrematurely() {
         timerJob?.cancel()
         val elapsed = _totalTimerSeconds.value - _remainingSeconds.value
-        if (elapsed >= 60) { // If at least 1 minute was studied, prompt to save
+        if (elapsed >= 60) {
             _timerState.value = TimerState.COMPLETED
             _showSessionSaveDialog.value = true
         } else {
@@ -440,13 +506,16 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
             )
             repository.saveSession(session)
 
-            // Update user profile total study minutes
+            // Update user profile total study minutes and streak
             val profile = userProfile.value
             if (profile != null) {
                 val addedMinutes = (focusSecs / 60).toInt()
+                val updatedStreak = calculateRealStreak(allSessions.value + session)
                 repository.saveProfile(
                     profile.copy(
-                        totalStudyMinutes = profile.totalStudyMinutes + addedMinutes
+                        totalStudyMinutes = profile.totalStudyMinutes + addedMinutes,
+                        streakDays = updatedStreak,
+                        lastActiveDate = System.currentTimeMillis()
                     )
                 )
             }
@@ -518,7 +587,7 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
                 title = title.trim(),
                 subtitle = subtitle.trim(),
                 scheduledTimeFormatted = timeFormatted,
-                scheduledTimestamp = System.currentTimeMillis() + 86400000,
+                scheduledTimestamp = System.currentTimeMillis() + 86400000L,
                 reminderType = type,
                 isEnabled = true
             )
@@ -534,6 +603,12 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun triggerTestNotification(context: Context = getApplication()) {
+        val name = userProfile.value?.displayName ?: "Student"
+        StudyHubNotificationManager.sendTestNotification(context, name)
+        showToast("Test notification sent! Check your notifications bar.")
+    }
+
     companion object {
         fun getStartOfDay(timestamp: Long): Long {
             return Calendar.getInstance().apply {
@@ -543,6 +618,32 @@ class StudyViewModel(application: Application) : AndroidViewModel(application) {
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
             }.timeInMillis
+        }
+
+        // Real contiguous streak calculation from actual saved sessions
+        fun calculateRealStreak(sessions: List<StudySessionEntity>): Int {
+            if (sessions.isEmpty()) return 0
+            val sessionDates = sessions.map { getStartOfDay(it.startedAt) }.distinct().sortedDescending()
+            val today = getStartOfDay(System.currentTimeMillis())
+            val yesterday = today - 86400000L
+
+            val latest = sessionDates.firstOrNull() ?: return 0
+            if (latest != today && latest != yesterday) {
+                return 0 // Streak broken
+            }
+
+            var streak = 1
+            var prevDate = latest
+            for (i in 1 until sessionDates.size) {
+                val expectedPrev = prevDate - 86400000L
+                if (sessionDates[i] == expectedPrev) {
+                    streak++
+                    prevDate = sessionDates[i]
+                } else {
+                    break
+                }
+            }
+            return streak
         }
     }
 }

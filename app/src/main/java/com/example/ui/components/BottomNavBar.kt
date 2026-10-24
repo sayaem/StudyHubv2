@@ -39,11 +39,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.StudyBorder
-import com.example.ui.theme.StudyNavyPrimary
-import com.example.ui.theme.StudySecondaryText
-import com.example.ui.theme.StudyTealAction
-import com.example.ui.theme.StudyTealLight
 
 enum class NavTab(
     val title: String,
@@ -67,8 +62,8 @@ fun StudyHubBottomNav(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White),
-        color = Color.White,
+            .background(MaterialTheme.colorScheme.surface),
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp
     ) {
         Column(
@@ -76,7 +71,7 @@ fun StudyHubBottomNav(
                 .fillMaxWidth()
                 .navigationBarsPadding()
         ) {
-            HorizontalDivider(thickness = 0.8.dp, color = StudyBorder)
+            HorizontalDivider(thickness = 0.8.dp, color = MaterialTheme.colorScheme.outlineVariant)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -105,9 +100,9 @@ fun StudyHubBottomNav(
                         Box(
                             modifier = Modifier
                                 .height(30.dp)
-                                .padding(horizontal = 12.dp)
+                                .padding(horizontal = 14.dp)
                                 .background(
-                                    color = if (isSelected) StudyTealLight else Color.Transparent,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else Color.Transparent,
                                     shape = RoundedCornerShape(16.dp)
                                 ),
                             contentAlignment = Alignment.Center
@@ -115,7 +110,7 @@ fun StudyHubBottomNav(
                             Icon(
                                 imageVector = if (isSelected) tab.selectedIcon else tab.unselectedIcon,
                                 contentDescription = tab.title,
-                                tint = if (isSelected) StudyTealAction else StudySecondaryText,
+                                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -124,7 +119,7 @@ fun StudyHubBottomNav(
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontSize = 11.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) StudyTealAction else StudySecondaryText
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                     }

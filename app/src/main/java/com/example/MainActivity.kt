@@ -1,7 +1,6 @@
 package com.example
 
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
@@ -25,7 +25,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.model.StudyTaskEntity
 import com.example.ui.components.AppHeader
 import com.example.ui.components.NavTab
 import com.example.ui.components.StudyHubBottomNav
@@ -35,7 +34,6 @@ import com.example.ui.screens.ChapterDetailScreen
 import com.example.ui.screens.CreateNoteScreen
 import com.example.ui.screens.FocusTimerScreen
 import com.example.ui.screens.HomeScreen
-import com.example.ui.screens.LevelSelectionScreen
 import com.example.ui.screens.NotesAndFlashcardsScreen
 import com.example.ui.screens.OnboardingScreen
 import com.example.ui.screens.PerformanceAnalyticsScreen
@@ -48,7 +46,6 @@ import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.SplashScreen
 import com.example.ui.screens.SyllabusScreen
 import com.example.ui.screens.ToolsHubScreen
-import com.example.ui.theme.StudyBackground
 import com.example.ui.theme.StudyHubTheme
 import com.example.ui.viewmodel.Screen
 import com.example.ui.viewmodel.StudyViewModel
@@ -63,7 +60,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            StudyHubTheme {
+            val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
+            StudyHubTheme(themeMode = userProfile?.themeMode ?: "SYSTEM") {
                 StudyHubApp(viewModel = viewModel)
             }
         }
@@ -141,7 +139,8 @@ fun StudyHubApp(viewModel: StudyViewModel) {
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
-                .background(StudyBackground),
+                .background(MaterialTheme.colorScheme.background),
+            containerColor = MaterialTheme.colorScheme.background,
             bottomBar = {
                 if (showBottomNav) {
                     StudyHubBottomNav(
@@ -159,11 +158,11 @@ fun StudyHubApp(viewModel: StudyViewModel) {
                 when (val screen = currentScreen) {
                     is Screen.Splash -> {
                         SplashScreen(
-                            onGetStarted = {
+                            onSplashFinished = {
                                 if (userProfile?.isOnboardingCompleted == true) {
                                     viewModel.replaceTop(Screen.Main(NavTab.HOME))
                                 } else {
-                                    viewModel.navigateTo(Screen.Onboarding)
+                                    viewModel.replaceTop(Screen.Onboarding)
                                 }
                             }
                         )
@@ -171,34 +170,26 @@ fun StudyHubApp(viewModel: StudyViewModel) {
 
                     is Screen.Onboarding -> {
                         OnboardingScreen(
-                            onSkip = { viewModel.navigateTo(Screen.LevelSelect) },
-                            onContinue = { viewModel.navigateTo(Screen.LevelSelect) }
-                        )
-                    }
-
-                    is Screen.LevelSelect -> {
-                        var tempLevel by remember { mutableStateOf("HSC") }
-                        LevelSelectionScreen(
-                            selectedLevel = tempLevel,
-                            onSelectLevel = { tempLevel = it },
-                            onBack = { viewModel.navigateBack() },
-                            onContinue = { viewModel.navigateTo(Screen.ProfileSetup) }
-                        )
-                    }
-
-                    is Screen.ProfileSetup -> {
-                        ProfileSetupScreen(
-                            initialLevel = userProfile?.level ?: "HSC",
-                            onBack = { viewModel.navigateBack() },
-                            onComplete = { name, level, board, group, examName, examDate ->
-                                viewModel.completeOnboardingAndSetup(
+                            onCompleteOnboarding = { name, level, admissionCat, board, group, examName, examDate, dailyGoal, focusMin, breakMin, mainGoal, studyRem, goalRem, examRem, avatarId, selectedSubjects ->
+                                viewModel.completeComprehensiveOnboarding(
                                     displayName = name,
                                     level = level,
+                                    admissionCategory = admissionCat,
                                     board = board,
                                     groupName = group,
                                     targetExamName = examName,
-                                    targetExamDate = examDate
+                                    targetExamDate = examDate,
+                                    dailyGoalMinutes = dailyGoal,
+                                    preferredFocusMinutes = focusMin,
+                                    preferredBreakMinutes = breakMin,
+                                    mainGoal = mainGoal,
+                                    studyReminders = studyRem,
+                                    dailyGoalReminders = goalRem,
+                                    examReminders = examRem,
+                                    avatarId = avatarId,
+                                    selectedSubjectNames = selectedSubjects
                                 )
+                                viewModel.replaceTop(Screen.Main(NavTab.HOME))
                             }
                         )
                     }
@@ -419,19 +410,10 @@ fun StudyHubApp(viewModel: StudyViewModel) {
                     is Screen.Settings -> {
                         SettingsScreen(
                             profile = userProfile,
-                            onBack = { viewModel.navigateBack() },
-                            onResetData = {
-                                userProfile?.let {
-                                    viewModel.updateProfile(
-                                        it.copy(
-                                            displayName = "Sayem Arafat",
-                                            level = "HSC",
-                                            board = "Dhaka",
-                                            groupName = "Science"
-                                        )
-                                    )
-                                }
-                            }
+                            onSetThemeMode = { mode -> viewModel.setThemeMode(mode) },
+                            onTestNotification = { viewModel.triggerTestNotification() },
+                            onResetOnboarding = { viewModel.resetOnboarding() },
+                            onBack = { viewModel.navigateBack() }
                         )
                     }
 

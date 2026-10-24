@@ -50,11 +50,6 @@ import com.example.data.model.StudyTaskEntity
 import com.example.data.model.SubjectEntity
 import com.example.data.model.TaskPriority
 import com.example.ui.components.PrimaryButton
-import com.example.ui.theme.StudyBackground
-import com.example.ui.theme.StudyBorder
-import com.example.ui.theme.StudyNavyPrimary
-import com.example.ui.theme.StudySecondaryText
-import com.example.ui.theme.StudyTealAction
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -85,7 +80,6 @@ fun AddTaskScreen(
     }
     var subjectExpanded by remember { mutableStateOf(false) }
 
-    // Chapters for selected subject
     val currentSubjectId = subjects.firstOrNull { it.name == selectedSubjectName }?.id
     val relevantChapters = chapters.filter { it.subjectId == currentSubjectId }
     var selectedChapterName by remember {
@@ -107,7 +101,7 @@ fun AddTaskScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(20.dp)
@@ -125,15 +119,15 @@ fun AddTaskScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = StudyNavyPrimary
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = if (existingTask != null) "Edit Task" else "Add Task",
+                text = if (existingTask != null) "Edit Study Task" else "New Study Task",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    color = StudyNavyPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
         }
@@ -153,7 +147,7 @@ fun AddTaskScreen(
                 label = { Text("Subject") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = subjectExpanded) },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.MenuBook, contentDescription = null, tint = StudyTealAction)
+                    Icon(imageVector = Icons.Default.MenuBook, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -161,10 +155,8 @@ fun AddTaskScreen(
                     .testTag("add_task_subject_dropdown"),
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = StudyTealAction,
-                    unfocusedBorderColor = StudyBorder,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
             )
             ExposedDropdownMenu(
@@ -206,10 +198,8 @@ fun AddTaskScreen(
                         .testTag("add_task_chapter_dropdown"),
                     shape = RoundedCornerShape(14.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = StudyTealAction,
-                        unfocusedBorderColor = StudyBorder,
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     )
                 )
                 ExposedDropdownMenu(
@@ -230,7 +220,7 @@ fun AddTaskScreen(
             Spacer(modifier = Modifier.height(14.dp))
         }
 
-        // Task Title (required)
+        // Task Title
         OutlinedTextField(
             value = title,
             onValueChange = {
@@ -238,22 +228,21 @@ fun AddTaskScreen(
                 if (it.isNotBlank()) titleError = false
             },
             label = { Text("Task Title *") },
+            placeholder = { Text("e.g. Read Vector Laws, Solve MCQ #1-20") },
             isError = titleError,
             supportingText = if (titleError) {
-                { Text("Please enter a title for the task", color = Color(0xFFD14343)) }
+                { Text("Please enter a title for the task", color = MaterialTheme.colorScheme.error) }
             } else null,
             leadingIcon = {
-                Icon(imageVector = Icons.Default.Title, contentDescription = null, tint = StudyTealAction)
+                Icon(imageVector = Icons.Default.Title, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("add_task_title_input"),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = StudyTealAction,
-                unfocusedBorderColor = StudyBorder,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
             )
         )
 
@@ -264,17 +253,15 @@ fun AddTaskScreen(
             value = dateFormatter.format(Date(initialDate)),
             onValueChange = {},
             readOnly = true,
-            label = { Text("Date") },
+            label = { Text("Scheduled Date") },
             leadingIcon = {
-                Icon(imageVector = Icons.Default.CalendarMonth, contentDescription = null, tint = StudyTealAction)
+                Icon(imageVector = Icons.Default.CalendarMonth, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = StudyTealAction,
-                unfocusedBorderColor = StudyBorder,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
             )
         )
 
@@ -293,7 +280,7 @@ fun AddTaskScreen(
                 label = { Text("Priority") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = priorityExpanded) },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Flag, contentDescription = null, tint = StudyTealAction)
+                    Icon(imageVector = Icons.Default.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -301,10 +288,8 @@ fun AddTaskScreen(
                     .testTag("add_task_priority_dropdown"),
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = StudyTealAction,
-                    unfocusedBorderColor = StudyBorder,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
             )
             ExposedDropdownMenu(
@@ -335,10 +320,10 @@ fun AddTaskScreen(
                 value = "${estimatedMinutes / 60}h ${estimatedMinutes % 60}m",
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Estimated Time") },
+                label = { Text("Estimated Duration") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = durationExpanded) },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Schedule, contentDescription = null, tint = StudyTealAction)
+                    Icon(imageVector = Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -346,17 +331,15 @@ fun AddTaskScreen(
                     .testTag("add_task_duration_dropdown"),
                 shape = RoundedCornerShape(14.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = StudyTealAction,
-                    unfocusedBorderColor = StudyBorder,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
             )
             ExposedDropdownMenu(
                 expanded = durationExpanded,
                 onDismissRequest = { durationExpanded = false }
             ) {
-                listOf(30, 45, 60, 90, 120, 180).forEach { mins ->
+                listOf(25, 45, 60, 90, 120, 180).forEach { mins ->
                     DropdownMenuItem(
                         text = { Text("${mins / 60}h ${mins % 60}m") },
                         onClick = {
@@ -374,17 +357,15 @@ fun AddTaskScreen(
         OutlinedTextField(
             value = notes,
             onValueChange = { notes = it },
-            label = { Text("Notes (optional)") },
+            label = { Text("Notes & Key Equations (optional)") },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(100.dp)
                 .testTag("add_task_notes_input"),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = StudyTealAction,
-                unfocusedBorderColor = StudyBorder,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
             ),
             maxLines = 4
         )
@@ -392,7 +373,7 @@ fun AddTaskScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         PrimaryButton(
-            text = "Save Task",
+            text = if (existingTask != null) "Update Task" else "Save Task",
             onClick = {
                 if (title.isBlank()) {
                     titleError = true

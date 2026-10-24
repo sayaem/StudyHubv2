@@ -1,10 +1,9 @@
 package com.example
 
-import com.example.data.model.ChapterEntity
-import com.example.data.model.ChapterStatus
+import com.example.data.model.StudySessionEntity
 import com.example.data.model.StudyTaskEntity
-import com.example.data.model.TaskPriority
 import com.example.data.model.TopicEntity
+import com.example.data.model.UserProfile
 import com.example.ui.viewmodel.StudyViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -85,5 +84,43 @@ class ExampleUnitTest {
         val elapsedSeconds = totalSeconds - remainingSeconds
         assertEquals(600L, elapsedSeconds)
         assertEquals(10L, elapsedSeconds / 60)
+    }
+
+    @Test
+    fun testRealStreakCalculationFromSessions() {
+        // Zero sessions => 0 streak
+        val emptyStreak = StudyViewModel.calculateRealStreak(emptyList())
+        assertEquals(0, emptyStreak)
+
+        val todayStart = StudyViewModel.getStartOfDay(System.currentTimeMillis())
+        val yesterdayStart = todayStart - 86400000L
+        val twoDaysAgoStart = yesterdayStart - 86400000L
+
+        // Today session only => 1 day streak
+        val streak1 = StudyViewModel.calculateRealStreak(
+            listOf(
+                StudySessionEntity(id = "s1", subjectName = "Physics", startedAt = todayStart + 1000, endedAt = todayStart + 2500000, focusSeconds = 1500)
+            )
+        )
+        assertEquals(1, streak1)
+
+        // Today + Yesterday + Two Days Ago => 3 days streak
+        val streak3 = StudyViewModel.calculateRealStreak(
+            listOf(
+                StudySessionEntity(id = "s1", subjectName = "Physics", startedAt = todayStart + 1000, endedAt = todayStart + 2500000, focusSeconds = 1500),
+                StudySessionEntity(id = "s2", subjectName = "Chemistry", startedAt = yesterdayStart + 2000, endedAt = yesterdayStart + 2500000, focusSeconds = 1500),
+                StudySessionEntity(id = "s3", subjectName = "Math", startedAt = twoDaysAgoStart + 3000, endedAt = twoDaysAgoStart + 2500000, focusSeconds = 1500)
+            )
+        )
+        assertEquals(3, streak3)
+    }
+
+    @Test
+    fun testInitialProfileDefaults() {
+        val profile = UserProfile()
+        assertFalse("New profile must not have onboarding completed by default", profile.isOnboardingCompleted)
+        assertEquals("New profile must have 0 streak days", 0, profile.streakDays)
+        assertEquals("New profile must have 0 total study minutes", 0, profile.totalStudyMinutes)
+        assertEquals("Default theme mode must be SYSTEM", "SYSTEM", profile.themeMode)
     }
 }

@@ -1,7 +1,5 @@
 package com.example.ui.screens
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,13 +27,9 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Analytics
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Search
@@ -58,10 +52,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -72,9 +62,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -87,18 +75,10 @@ import com.example.data.model.NoteEntity
 import com.example.data.model.ReminderEntity
 import com.example.data.model.ReminderType
 import com.example.ui.components.EmptyStateView
-import com.example.ui.components.PrimaryButton
 import com.example.ui.components.StudyHubCard
 import com.example.ui.components.SubjectTag
-import com.example.ui.theme.StudyAccentSky
-import com.example.ui.theme.StudyBackground
-import com.example.ui.theme.StudyBorder
-import com.example.ui.theme.StudyNavyPrimary
-import com.example.ui.theme.StudyPrimaryText
-import com.example.ui.theme.StudySecondaryText
 import com.example.ui.theme.StudySuccess
 import com.example.ui.theme.StudyTealAction
-import com.example.ui.theme.StudyTealLight
 
 @Composable
 fun ToolsHubScreen(
@@ -113,7 +93,7 @@ fun ToolsHubScreen(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground),
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(18.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -122,13 +102,13 @@ fun ToolsHubScreen(
                 text = "Study Tools",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
-                    color = StudyNavyPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Boost productivity and retain knowledge effectively",
-                style = MaterialTheme.typography.bodyMedium.copy(color = StudySecondaryText)
+                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
             )
         }
 
@@ -137,7 +117,7 @@ fun ToolsHubScreen(
                 title = "Focus Timer",
                 subtitle = "Pomodoro 25/5 and custom timed study sessions",
                 icon = Icons.Default.Timer,
-                iconTint = StudyTealAction,
+                iconTint = MaterialTheme.colorScheme.primary,
                 onClick = onOpenFocusTimer
             )
         }
@@ -213,7 +193,7 @@ private fun ToolCard(
         ) {
             Surface(
                 shape = RoundedCornerShape(14.dp),
-                color = iconTint.copy(alpha = 0.12f),
+                color = iconTint.copy(alpha = 0.15f),
                 modifier = Modifier.size(52.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -233,13 +213,13 @@ private fun ToolCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                 )
             }
         }
@@ -275,7 +255,7 @@ fun NotesAndFlashcardsScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -294,7 +274,7 @@ fun NotesAndFlashcardsScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = StudyNavyPrimary
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
@@ -302,12 +282,12 @@ fun NotesAndFlashcardsScreen(
                     text = "Notes & Flashcards",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
 
-            // Tabs: Notes vs Flashcards (matching mockup!)
+            // Tabs: Notes vs Flashcards
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -316,20 +296,20 @@ fun NotesAndFlashcardsScreen(
             ) {
                 Surface(
                     shape = RoundedCornerShape(24.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, StudyBorder)
+                    color = MaterialTheme.colorScheme.surface,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
                     Row(modifier = Modifier.padding(4.dp)) {
                         Surface(
                             shape = RoundedCornerShape(20.dp),
-                            color = if (selectedTab == 0) StudyTealAction else Color.Transparent,
+                            color = if (selectedTab == 0) MaterialTheme.colorScheme.primary else Color.Transparent,
                             modifier = Modifier
                                 .clickable { selectedTab = 0 }
                                 .testTag("tab_notes")
                         ) {
                             Text(
                                 text = "Notes",
-                                color = if (selectedTab == 0) Color.White else StudySecondaryText,
+                                color = if (selectedTab == 0) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                             )
@@ -337,14 +317,14 @@ fun NotesAndFlashcardsScreen(
 
                         Surface(
                             shape = RoundedCornerShape(20.dp),
-                            color = if (selectedTab == 1) StudyTealAction else Color.Transparent,
+                            color = if (selectedTab == 1) MaterialTheme.colorScheme.primary else Color.Transparent,
                             modifier = Modifier
                                 .clickable { selectedTab = 1 }
                                 .testTag("tab_flashcards")
                         ) {
                             Text(
                                 text = "Flashcards",
-                                color = if (selectedTab == 1) Color.White else StudySecondaryText,
+                                color = if (selectedTab == 1) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                             )
@@ -362,7 +342,7 @@ fun NotesAndFlashcardsScreen(
                     contentPadding = PaddingValues(18.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    // Search Bar (matching mockup!)
+                    // Search Bar
                     item {
                         OutlinedTextField(
                             value = searchQuery,
@@ -372,7 +352,7 @@ fun NotesAndFlashcardsScreen(
                                 Icon(
                                     imageVector = Icons.Default.Search,
                                     contentDescription = null,
-                                    tint = StudySecondaryText
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             },
                             trailingIcon = {
@@ -387,16 +367,16 @@ fun NotesAndFlashcardsScreen(
                                 .testTag("notes_search_input"),
                             shape = RoundedCornerShape(14.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = StudyTealAction,
-                                unfocusedBorderColor = StudyBorder,
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface
                             ),
                             singleLine = true
                         )
                     }
 
-                    // Subject Folder Chips matching mockup: Physics, Chemistry, Math, Biology, English
+                    // Subject Folder Chips
                     item {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(listOf("All", "Physics", "Chemistry", "Mathematics", "Biology", "English")) { sub ->
@@ -406,15 +386,15 @@ fun NotesAndFlashcardsScreen(
                                     onClick = { selectedSubjectFilter = sub },
                                     label = { Text(sub) },
                                     colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = StudyTealLight,
-                                        selectedLabelColor = StudyTealAction,
-                                        containerColor = Color.White,
-                                        labelColor = StudySecondaryText
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        containerColor = MaterialTheme.colorScheme.surface,
+                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                                     ),
                                     border = FilterChipDefaults.filterChipBorder(
                                         enabled = true,
                                         selected = isSelected,
-                                        borderColor = if (isSelected) StudyTealAction else StudyBorder
+                                        borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                                     )
                                 )
                             }
@@ -448,7 +428,7 @@ fun NotesAndFlashcardsScreen(
                                             Icon(
                                                 imageVector = Icons.Default.Delete,
                                                 contentDescription = "Delete Note",
-                                                tint = StudySecondaryText.copy(alpha = 0.5f),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                                 modifier = Modifier.size(16.dp)
                                             )
                                         }
@@ -458,20 +438,20 @@ fun NotesAndFlashcardsScreen(
                                         text = note.title,
                                         style = MaterialTheme.typography.titleMedium.copy(
                                             fontWeight = FontWeight.Bold,
-                                            color = StudyNavyPrimary
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                     )
                                     if (note.chapterName.isNotBlank()) {
                                         Text(
                                             text = note.chapterName,
-                                            style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = note.content,
                                         style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = StudyPrimaryText,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             lineHeight = 22.sp
                                         )
                                     )
@@ -485,7 +465,7 @@ fun NotesAndFlashcardsScreen(
                     }
                 }
             } else {
-                // Flashcards View (matching mockup screen 16!)
+                // Flashcards View
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -508,15 +488,15 @@ fun NotesAndFlashcardsScreen(
                                 },
                                 label = { Text(sub) },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = StudyNavyPrimary,
-                                    selectedLabelColor = Color.White,
-                                    containerColor = Color.White,
-                                    labelColor = StudySecondaryText
+                                    selectedContainerColor = MaterialTheme.colorScheme.secondary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onSecondary,
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 ),
                                 border = FilterChipDefaults.filterChipBorder(
                                     enabled = true,
                                     selected = isSelected,
-                                    borderColor = if (isSelected) StudyNavyPrimary else StudyBorder
+                                    borderColor = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant
                                 )
                             )
                         }
@@ -538,13 +518,13 @@ fun NotesAndFlashcardsScreen(
                             text = "${currentCardIndex + 1} / ${deckFlashcards.size}",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = StudySecondaryText
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Interactive 3D Flip Card (matching mockup!)
+                        // Interactive Flip Card
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -553,11 +533,11 @@ fun NotesAndFlashcardsScreen(
                                 .testTag("flashcard_container"),
                             shape = RoundedCornerShape(20.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = if (isFlipped) Color(0xFFF0FDF4) else Color.White
+                                containerColor = if (isFlipped) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
                             ),
                             border = androidx.compose.foundation.BorderStroke(
                                 1.5.dp,
-                                if (isFlipped) StudySuccess else StudyBorder
+                                if (isFlipped) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                             ),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                         ) {
@@ -574,7 +554,7 @@ fun NotesAndFlashcardsScreen(
                                     Text(
                                         text = if (isFlipped) "ANSWER" else "QUESTION",
                                         style = MaterialTheme.typography.labelSmall.copy(
-                                            color = if (isFlipped) StudySuccess else StudyTealAction,
+                                            color = if (isFlipped) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
                                             fontWeight = FontWeight.Bold,
                                             letterSpacing = 1.sp
                                         )
@@ -584,7 +564,7 @@ fun NotesAndFlashcardsScreen(
                                         text = if (isFlipped) currentCard.answerBack else currentCard.questionFront,
                                         style = MaterialTheme.typography.titleMedium.copy(
                                             fontWeight = FontWeight.SemiBold,
-                                            color = StudyNavyPrimary,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             textAlign = TextAlign.Center,
                                             lineHeight = 24.sp
                                         )
@@ -592,7 +572,7 @@ fun NotesAndFlashcardsScreen(
                                     Spacer(modifier = Modifier.height(20.dp))
                                     Text(
                                         text = if (isFlipped) "Tap to flip back" else "Tap to reveal answer",
-                                        style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                 }
                             }
@@ -600,7 +580,7 @@ fun NotesAndFlashcardsScreen(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Controls: Review again vs Know it (matching mockup!)
+                        // Controls: Review again vs Know it
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(14.dp)
@@ -658,7 +638,11 @@ fun NotesAndFlashcardsScreen(
                                 },
                                 enabled = currentCardIndex > 0
                             ) {
-                                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Previous")
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                    contentDescription = "Previous",
+                                    tint = if (currentCardIndex > 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                )
                             }
 
                             IconButton(
@@ -670,7 +654,11 @@ fun NotesAndFlashcardsScreen(
                                 },
                                 enabled = currentCardIndex < deckFlashcards.size - 1
                             ) {
-                                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Next")
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = "Next",
+                                    tint = if (currentCardIndex < deckFlashcards.size - 1) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                                )
                             }
                         }
                     }
@@ -682,8 +670,8 @@ fun NotesAndFlashcardsScreen(
         if (selectedTab == 0) {
             FloatingActionButton(
                 onClick = onAddNote,
-                containerColor = StudyTealAction,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = CircleShape,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -711,7 +699,7 @@ fun CreateNoteScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(20.dp)
@@ -729,14 +717,14 @@ fun CreateNoteScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = StudyNavyPrimary
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
             Text(
                 text = "Create Note",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    color = StudyNavyPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             )
             Button(
@@ -747,7 +735,7 @@ fun CreateNoteScreen(
                         onSaveNote(title, content, selectedSubject, chapterName)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.testTag("save_note_button")
             ) {
@@ -766,15 +754,15 @@ fun CreateNoteScreen(
                     onClick = { selectedSubject = sub },
                     label = { Text(sub) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = StudyTealLight,
-                        selectedLabelColor = StudyTealAction,
-                        containerColor = Color.White,
-                        labelColor = StudySecondaryText
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     border = FilterChipDefaults.filterChipBorder(
                         enabled = true,
                         selected = isSelected,
-                        borderColor = if (isSelected) StudyTealAction else StudyBorder
+                        borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                     )
                 )
             }
@@ -792,17 +780,17 @@ fun CreateNoteScreen(
             placeholder = { Text("Note Title (e.g. Motion in a Plane - Formulas)") },
             isError = titleError,
             supportingText = if (titleError) {
-                { Text("Please enter a note title", color = Color(0xFFD14343)) }
+                { Text("Please enter a note title", color = MaterialTheme.colorScheme.error) }
             } else null,
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("note_title_input"),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = StudyTealAction,
-                unfocusedBorderColor = StudyBorder,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             ),
             singleLine = true
         )
@@ -817,10 +805,10 @@ fun CreateNoteScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = StudyTealAction,
-                unfocusedBorderColor = StudyBorder,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             ),
             singleLine = true
         )
@@ -838,10 +826,10 @@ fun CreateNoteScreen(
                 .testTag("note_content_input"),
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = StudyTealAction,
-                unfocusedBorderColor = StudyBorder,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
             )
         )
     }
@@ -866,7 +854,7 @@ fun RemindersScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(StudyBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
@@ -885,7 +873,7 @@ fun RemindersScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = StudyNavyPrimary
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
@@ -893,12 +881,12 @@ fun RemindersScreen(
                     text = "Reminders",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = StudyNavyPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
 
-            // Filter Tabs (matching mockup: All, Study, Revision, Exam)
+            // Filter Tabs
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -912,15 +900,15 @@ fun RemindersScreen(
                         onClick = { selectedTypeFilter = type },
                         label = { Text(type.label) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = StudyTealLight,
-                            selectedLabelColor = StudyTealAction,
-                            containerColor = Color.White,
-                            labelColor = StudySecondaryText
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         border = FilterChipDefaults.filterChipBorder(
                             enabled = true,
                             selected = isSelected,
-                            borderColor = if (isSelected) StudyTealAction else StudyBorder
+                            borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
                         )
                     )
                 }
@@ -954,10 +942,10 @@ fun RemindersScreen(
                                 Surface(
                                     shape = RoundedCornerShape(12.dp),
                                     color = when (reminder.reminderType) {
-                                        ReminderType.STUDY -> StudyAccentSky
+                                        ReminderType.STUDY -> MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                         ReminderType.REVISION -> Color(0xFFFEF3C7)
                                         ReminderType.EXAM -> Color(0xFFFDE8E8)
-                                        else -> StudyTealLight
+                                        else -> MaterialTheme.colorScheme.surfaceVariant
                                     },
                                     modifier = Modifier.size(46.dp)
                                 ) {
@@ -966,10 +954,10 @@ fun RemindersScreen(
                                             imageVector = Icons.Default.Notifications,
                                             contentDescription = null,
                                             tint = when (reminder.reminderType) {
-                                                ReminderType.STUDY -> StudyTealAction
+                                                ReminderType.STUDY -> MaterialTheme.colorScheme.primary
                                                 ReminderType.REVISION -> Color(0xFFD97706)
                                                 ReminderType.EXAM -> Color(0xFFD14343)
-                                                else -> StudyNavyPrimary
+                                                else -> MaterialTheme.colorScheme.onSurface
                                             },
                                             modifier = Modifier.size(24.dp)
                                         )
@@ -983,18 +971,18 @@ fun RemindersScreen(
                                         text = reminder.title,
                                         style = MaterialTheme.typography.titleMedium.copy(
                                             fontWeight = FontWeight.Bold,
-                                            color = StudyNavyPrimary
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                     )
                                     Text(
                                         text = reminder.subtitle,
-                                        style = MaterialTheme.typography.bodySmall.copy(color = StudySecondaryText)
+                                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = reminder.scheduledTimeFormatted,
                                         style = MaterialTheme.typography.labelSmall.copy(
-                                            color = StudyTealAction,
+                                            color = MaterialTheme.colorScheme.primary,
                                             fontWeight = FontWeight.Medium
                                         )
                                     )
@@ -1005,9 +993,9 @@ fun RemindersScreen(
                                     onCheckedChange = { onToggleReminder(reminder.id, it) },
                                     colors = SwitchDefaults.colors(
                                         checkedThumbColor = Color.White,
-                                        checkedTrackColor = StudyTealAction,
+                                        checkedTrackColor = MaterialTheme.colorScheme.primary,
                                         uncheckedThumbColor = Color.White,
-                                        uncheckedTrackColor = Color(0xFFCBD5E1)
+                                        uncheckedTrackColor = MaterialTheme.colorScheme.outlineVariant
                                     )
                                 )
                             }
@@ -1024,8 +1012,8 @@ fun RemindersScreen(
         // Add Reminder FAB
         FloatingActionButton(
             onClick = { showAddDialog = true },
-            containerColor = StudyTealAction,
-            contentColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
             shape = CircleShape,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -1068,7 +1056,7 @@ fun RemindersScreen(
                             showAddDialog = false
                         }
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = StudyTealAction)
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("Schedule")
                 }
